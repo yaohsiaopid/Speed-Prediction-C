@@ -1,5 +1,10 @@
 % Created by Eugene M. Izhikevich, February 25, 2003
 % Excitatory neurons    Inhibitory neurons
+
+ver distcomp
+parpool('local',8) % parallel with 8 cores.
+                   % adjust to the actual core number.
+
 clc
 clear
 tic
@@ -66,7 +71,8 @@ SynapticCurrent1=transpose([0;S1]);
 SynapticCurrent2=transpose([0;S2]);
 g1=transpose(full(spconvert(dlmread('Connection_Table_temp.txt'))));
 g2=transpose(full(spconvert(dlmread('Connection_Table_temp_short.txt'))));
-for l=1:7
+%for l=1:7
+parfor l=1:7
 
 Speed=Velocity(l);
 ExternalI=0*ones(TotalNe,1);
@@ -170,8 +176,8 @@ end
 
 toc
 
-
-
+parpool close
+delete(gcp('nocreate'))
 
 
 
