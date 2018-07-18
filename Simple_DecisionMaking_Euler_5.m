@@ -2,14 +2,14 @@
 % Excitatory neurons    Inhibitory neurons
 
 ver distcomp
-parpool('local',8) % parallel with 8 cores.
-                   % adjust to the actual core number.
+%parpool('local',4) % parallel with 4 cores.
+                   % adjust to the actual processor core number.
 
 clc
 clear
 tic
 SimulationTime=2000; %ms;
-DeltaT=0.01 %ms;
+DeltaT=0.01; %ms;
 Vr=10;
 Vth=130;
 NoiseStrengthBase=0;
@@ -71,8 +71,8 @@ SynapticCurrent1=transpose([0;S1]);
 SynapticCurrent2=transpose([0;S2]);
 g1=transpose(full(spconvert(dlmread('Connection_Table_temp.txt'))));
 g2=transpose(full(spconvert(dlmread('Connection_Table_temp_short.txt'))));
-%for l=1:7
-parfor l=1:7
+for l=1:7
+%parfor l=1:7
 
 Speed=Velocity(l);
 ExternalI=0*ones(TotalNe,1);
@@ -89,6 +89,8 @@ SynapticCurrent2=transpose([0;S2]);
 I=0*ones(TotalNe,1);
 
 for t=1:SimulationTime/DeltaT        % simulation time ms
+  disp(l);
+  disp(t);
   Inoise=NoiseStrengthBase*normrnd(0,1,[TotalNe,1]);
  
   if t>StimulationOnset && t<=StimulationOffset
@@ -109,13 +111,15 @@ for t=1:SimulationTime/DeltaT        % simulation time ms
   S1=S1+sum(1*g1(:,fired1),2)-(S1/Tau1)*DeltaT;
   S2=S2+sum(1*g2(:,fired2),2)-(S2/Tau2)*DeltaT;
   if ModulationCurrent>0
+      %ExternalI = [zeros(BoundNe,1);ModulationCurrent*ones(ShiftNe/2,1);zeros(ShiftNe/2+InhibitionNe,1);Speed*ones(CoupledNe-InhibitionNe+1,1);zeros(TotalNe-BoundNe-ShiftNe-CoupledNe-1,1)];
 	  ExternalI(BoundNe+1:ShiftNe/2+BoundNe)=ModulationCurrent;
 	  ExternalI(ShiftNe+BoundNe+InhibitionNe+1:ShiftNe+BoundNe+1+CoupledNe)=Speed;
   elseif ModulationCurrent<0
-	 ExternalI(ShiftNe+1:ShiftNe+BoundNe)=abs(ModulationCurrent);
-	 ExternalI(ShiftNe+BoundNe+InhibitionNe+1:ShiftNe+BoundNe+1+CoupledNe)=Speed;
+      %ExternalI = [zeros(ShiftNe,1);abs(ModulationCurrent)*ones(BoundNe,1);zeros(InhibitionNe,1);Speed*ones(CoupledNe-InhibitionNe+1,1);zeros(TotalNe-ShiftNe-BoundNe-CoupledNe-1,1)];
+	  ExternalI(ShiftNe+1:ShiftNe+BoundNe)=abs(ModulationCurrent);
+	  ExternalI(ShiftNe+BoundNe+InhibitionNe+1:ShiftNe+BoundNe+1+CoupledNe)=Speed;
   else
-	ExternalI(BoundNe+1:ShiftNe+BoundNe)=0;
+	  ExternalI(BoundNe+1:ShiftNe+BoundNe)=0;
   end
  
   I=ExternalI+S1+S2+Inoise+Ibias;
@@ -154,20 +158,20 @@ for t=1:SimulationTime/DeltaT        % simulation time ms
   %temp=transpose([t*DeltaT;S2]);
   %SynapticCurrent2=cat(1,SynapticCurrent2,temp);
 
-end;
+end
 foldername=int2str(l);
 mkdir (foldername);
 
 
 for N=1:TotalNe
-fig=plot(Potential(:,1),Potential(:,N+1),'b-');
-saveas(fig,strcat('NeuronV','_',num2str(N),'.png'));
-copyfile(strcat('NeuronV','_',num2str(N),'.png'),foldername);
-%fig=plot(SynapticCurrent1(:,1),SynapticCurrent1(:,N+1),'b-');
-%saveas(fig,strcat('NeuronC1','_',num2str(N),'.png'));
-%fig=plot(SynapticCurrent2(:,1),SynapticCurrent2(:,N+1),'b-');
-%saveas(fig,strcat('NeuronC2','_',num2str(N),'.png'));
-end;
+    fig=plot(Potential(:,1),Potential(:,N+1),'b-');
+    saveas(fig,strcat('NeuronV','_',num2str(N),'.png'));
+    copyfile(strcat('NeuronV','_',num2str(N),'.png'),foldername);
+    %fig=plot(SynapticCurrent1(:,1),SynapticCurrent1(:,N+1),'b-');
+    %saveas(fig,strcat('NeuronC1','_',num2str(N),'.png'));
+    %fig=plot(SynapticCurrent2(:,1),SynapticCurrent2(:,N+1),'b-');
+    %saveas(fig,strcat('NeuronC2','_',num2str(N),'.png'));
+end
 
 
 
@@ -176,8 +180,8 @@ end
 
 toc
 
-parpool close
-delete(gcp('nocreate'))
+%parpool close
+%delete(gcp('nocreate'))
 
 
 
