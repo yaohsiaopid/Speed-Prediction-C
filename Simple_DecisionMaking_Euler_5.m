@@ -9,12 +9,13 @@ clc
 clear
 tic
 SimulationTime=2000; %ms;
-DeltaT=0.01; %ms;
+DeltaT=0.008; %ms
 Vr=10;
 Vth=130;
 NoiseStrengthBase=0;
 Velocity=[0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,6,7];
-StimuluStrength=[5.5];
+%Velocity=[0,0.5,3];
+StimuluStrength=5.5;
 StimulusNeuron=1;
 StimulationOnset=300;
 StimulationOffset=305;
@@ -22,7 +23,8 @@ StimulationOnset=StimulationOnset/DeltaT;
 StimulationOffset=StimulationOffset/DeltaT;
 Direction=[0,4,-4.5];
 ModulationCurrent=Direction(2);
-Speed=Velocity(4);
+%Speed=Velocity(4);
+Speed=1.5;
 
 
 BoundNe=8;
@@ -71,8 +73,8 @@ SynapticCurrent1=transpose([0;S1]);
 SynapticCurrent2=transpose([0;S2]);
 g1=transpose(full(spconvert(dlmread('Connection_Table_temp.txt'))));
 g2=transpose(full(spconvert(dlmread('Connection_Table_temp_short.txt'))));
-for l=1:7
-%parfor l=1:7
+%for l=1:7
+for l=1:length(Velocity)
 
 Speed=Velocity(l);
 ExternalI=0*ones(TotalNe,1);
@@ -159,7 +161,7 @@ for t=1:SimulationTime/DeltaT        % simulation time ms
   %SynapticCurrent2=cat(1,SynapticCurrent2,temp);
 
 end
-foldername=int2str(l);
+foldername=num2str(Velocity(l));
 mkdir (foldername);
 
 
@@ -167,6 +169,9 @@ for N=1:TotalNe
     fig=plot(Potential(:,1),Potential(:,N+1),'b-');
     saveas(fig,strcat('NeuronV','_',num2str(N),'.png'));
     copyfile(strcat('NeuronV','_',num2str(N),'.png'),foldername);
+    temp = Potential(:,N+1);
+    save(strcat('NeuronV_',num2str(N)),'temp');
+    copyfile(strcat('NeuronV_',num2str(N),'.mat'),foldername);
     %fig=plot(SynapticCurrent1(:,1),SynapticCurrent1(:,N+1),'b-');
     %saveas(fig,strcat('NeuronC1','_',num2str(N),'.png'));
     %fig=plot(SynapticCurrent2(:,1),SynapticCurrent2(:,N+1),'b-');
@@ -180,8 +185,7 @@ end
 
 toc
 
-%parpool close
-%delete(gcp('nocreate'))
+%delete(gcp('nocreate'));
 
 
 
