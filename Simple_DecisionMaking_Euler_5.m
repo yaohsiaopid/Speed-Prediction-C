@@ -2,7 +2,7 @@
 % Excitatory neurons    Inhibitory neurons
 
 ver distcomp
-%parpool('local',4) % parallel with 4 cores.
+parpool('local',4) % parallel with 4 cores.
                    % adjust to the actual processor core number.
 
 clc
@@ -13,8 +13,8 @@ DeltaT=0.008; %ms
 Vr=10;
 Vth=130;
 NoiseStrengthBase=0;
-Velocity=[0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,6,7];
-%Velocity=[0,0.5,3];
+%Velocity=[0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,6,7];
+Velocity=[0,1,2,3,4,5,6,7];
 StimuluStrength=5.5;
 StimulusNeuron=1;
 StimulationOnset=300;
@@ -74,7 +74,7 @@ SynapticCurrent2=transpose([0;S2]);
 g1=transpose(full(spconvert(dlmread('Connection_Table_temp.txt'))));
 g2=transpose(full(spconvert(dlmread('Connection_Table_temp_short.txt'))));
 %for l=1:7
-for l=1:length(Velocity)
+parfor l=1:length(Velocity)
 
 Speed=Velocity(l);
 ExternalI=0*ones(TotalNe,1);
@@ -170,7 +170,7 @@ for N=1:TotalNe
     saveas(fig,strcat('NeuronV','_',num2str(N),'.png'));
     copyfile(strcat('NeuronV','_',num2str(N),'.png'),foldername);
     temp = Potential(:,N+1);
-    save(strcat('NeuronV_',num2str(N)),'temp');
+    parsave(strcat('NeuronV_',num2str(N)),'temp');
     copyfile(strcat('NeuronV_',num2str(N),'.mat'),foldername);
     %fig=plot(SynapticCurrent1(:,1),SynapticCurrent1(:,N+1),'b-');
     %saveas(fig,strcat('NeuronC1','_',num2str(N),'.png'));
@@ -185,7 +185,7 @@ end
 
 toc
 
-%delete(gcp('nocreate'));
+delete(gcp('nocreate'));
 
 
 
