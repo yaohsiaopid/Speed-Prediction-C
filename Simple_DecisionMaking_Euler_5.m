@@ -14,7 +14,7 @@ Vr=10;
 Vth=130;
 NoiseStrengthBase=0;
 %Velocity=[0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,6,7];
-Velocity=[0,1,2,3,4,5,6,7];
+Velocity=[16:2:30];
 StimuluStrength=5.5;
 StimulusNeuron=1;
 StimulationOnset=300;
@@ -91,7 +91,7 @@ SynapticCurrent2=transpose([0;S2]);
 I=0*ones(TotalNe,1);
 
 for t=1:SimulationTime/DeltaT        % simulation time ms
-  disp(l);
+  disp(Velocity(l));
   disp(t);
   Inoise=NoiseStrengthBase*normrnd(0,1,[TotalNe,1]);
  
@@ -167,11 +167,15 @@ mkdir (foldername);
 
 for N=1:TotalNe
     fig=plot(Potential(:,1),Potential(:,N+1),'b-');
-    saveas(fig,strcat('NeuronV','_',num2str(N),'.png'));
-    copyfile(strcat('NeuronV','_',num2str(N),'.png'),foldername);
-    temp = Potential(:,N+1);
-    parsave(strcat('NeuronV_',num2str(N)),'temp');
-    copyfile(strcat('NeuronV_',num2str(N),'.mat'),foldername);
+    saveas(fig,strcat(num2str(Velocity(l)),'NeuronV_',num2str(N),'.png'));
+    copyfile(strcat(num2str(Velocity(l)),'NeuronV_',num2str(N),'.png'),foldername);
+    %temp = Potential(:,N+1);
+    
+    m=matfile(sprintf('%dNeuronV_%d.mat',Velocity(l),N),'writable',true);
+    m.x=Potential(:,1);
+    m.y=Potential(:,N+1);
+    %parsave(strcat('NeuronV_',num2str(N)),temp);
+    copyfile(strcat(num2str(Velocity(l)),'NeuronV_',num2str(N),'.mat'),foldername);
     %fig=plot(SynapticCurrent1(:,1),SynapticCurrent1(:,N+1),'b-');
     %saveas(fig,strcat('NeuronC1','_',num2str(N),'.png'));
     %fig=plot(SynapticCurrent2(:,1),SynapticCurrent2(:,N+1),'b-');
