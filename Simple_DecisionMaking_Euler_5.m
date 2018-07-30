@@ -8,13 +8,13 @@ parpool('local',4) % parallel with 4 cores.
 clc
 clear
 tic
-SimulationTime=2000; %ms;
+SimulationTime=1600; %ms;
 DeltaT=0.008; %ms
 Vr=10;
 Vth=130;
 NoiseStrengthBase=0;
 %Velocity=[0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,6,7];
-Velocity=[16:2:30];
+Velocity=[0.1:0.1:0.4];
 StimuluStrength=5.5;
 StimulusNeuron=1;
 StimulationOnset=300;
@@ -167,26 +167,30 @@ mkdir (foldername);
 
 for N=1:TotalNe
     fig=plot(Potential(:,1),Potential(:,N+1),'b-');
-    saveas(fig,strcat(num2str(Velocity(l)),'NeuronV_',num2str(N),'.png'));
-    copyfile(strcat(num2str(Velocity(l)),'NeuronV_',num2str(N),'.png'),foldername);
+    saveas(fig,strcat(num2str(l),'NeuronV_',num2str(N),'.png'));
+    copyfile(strcat(num2str(l),'NeuronV_',num2str(N),'.png'),foldername);
     %temp = Potential(:,N+1);
     
-    m=matfile(sprintf('%dNeuronV_%d.mat',Velocity(l),N),'writable',true);
+    m=matfile(sprintf('%dNeuronV_%d.mat',l,N),'writable',true);
     m.x=Potential(:,1);
     m.y=Potential(:,N+1);
     %parsave(strcat('NeuronV_',num2str(N)),temp);
-    copyfile(strcat(num2str(Velocity(l)),'NeuronV_',num2str(N),'.mat'),foldername);
+    copyfile(strcat(num2str(l),'NeuronV_',num2str(N),'.mat'),foldername);
     %fig=plot(SynapticCurrent1(:,1),SynapticCurrent1(:,N+1),'b-');
     %saveas(fig,strcat('NeuronC1','_',num2str(N),'.png'));
     %fig=plot(SynapticCurrent2(:,1),SynapticCurrent2(:,N+1),'b-');
     %saveas(fig,strcat('NeuronC2','_',num2str(N),'.png'));
+    formatSpec = '%dNeuronV_%d.txt';
+    filename = sprintf(formatSpec,l,N);
+    fileID = fopen(filename,'w');
+    threshold_record(Potential(:,N+1),DeltaT,40,fileID); % use 40mV as threshold voltage
+    fclose(fileID);
+    copyfile(filename,foldername);
 end
 
-
-
-
 end
 
+delete *NeuronV_*.*
 toc
 
 delete(gcp('nocreate'));
