@@ -5,3 +5,8 @@ First generate data with [NetworkGenerator.py](Speed-Prediction-Model/NetworkGen
 
 then do the decisionmaking with MATLAB.
 
+[Speed-shifttime spread sheet](https://docs.google.com/spreadsheets/d/1nfc6smt9cKitOwlRuLUcf0JxMPiduq7qyEi38aiLdok/edit#gid=1591122225)
+
+[Slowest FM Comparator](https://drive.google.com/file/d/1xl6Wibq4oQ6SDoP2sHG8zL2SE4Oa9nvg/view)
+
+[Fast FM Comparator](https://drive.google.com/file/d/1GLgBr6w9b6024tHsDPrXrZzII31C7597/view)
