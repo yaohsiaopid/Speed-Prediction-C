@@ -9,12 +9,12 @@ clc
 clear
 tic
 SimulationTime=1600;    % ms
-DeltaT=0.0125;          % ms
+DeltaT=0.01;            % ms
 Vr=10;
 Vth=130;
 NoiseStrengthBase=0;
 %Velocity=[0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,6,7];
-Velocity=[2, 2.5];      % Speed current(nA) of interest
+Velocity=[0.5:0.5:2];   % Speed current(nA) of interest
 StimuluStrength=5.5;
 StimulusNeuron=1;
 StimulationOnset=300;   % start at 300ms
@@ -25,15 +25,17 @@ Direction=[0,4,-4.5];
 ModulationCurrent=Direction(2);
 %Speed=1.5;
 
+% Neuron index
+BoundNe=1:8;        % main bump neurons
+RightShiftNe=9:15;
+LeftShiftNe=16:22;
+ShiftNe=9:22;
+InhibitionNe=23;
+CoupledNe=24:25;
+BaseFrequencyNe=26;
+FMNe=27;            % frequency modulation neuron
+TotalNe=FMNe;
 
-BoundNe=8;              % number of main bump neurons
-ShiftNe=14;             % number of shift neurons. each 7 for right/left shift
-%ShiftNe=2*(BoundNe-1);
-InhibitionNe=1;         % global inhibition neuron
-FMNe=1;                 % frequency modulation neuron
-BaseFrequencyNe=1;
-CoupledNe=2;
-TotalNe=BoundNe+ShiftNe+InhibitionNe+FMNe+BaseFrequencyNe+CoupledNe;
 %{
 a=[0.04,0.04,0.04,0.02,0.02,0.02];
 b=[0.1,0.1,0.1,0.2,0.2,0.2];
@@ -51,12 +53,54 @@ d=[0.1,0.1,0.1,0.1,0.1,0.1];
 IB=[9.4,2,-2,16,10,-11];
 c=c+100;                            % change offset to make all voltage positive
 
+A=ones(TotalNe,1);
+A(BoundNe)=a(1);
+A(ShiftNe)=a(2);
+A(InhibitionNe)=a(3);
+A(CoupledNe)=a(4);
+A(BaseFrequencyNe)=a(5);
+A(FMNe)=a(6);
+
+B=ones(TotalNe,1);
+B(BoundNe)=b(1);
+B(ShiftNe)=b(2);
+B(InhibitionNe)=b(3);
+B(CoupledNe)=b(4);
+B(BaseFrequencyNe)=b(5);
+B(FMNe)=b(6);
+
+C=ones(TotalNe,1);
+C(BoundNe)=c(1);
+C(ShiftNe)=c(2);
+C(InhibitionNe)=c(3);
+C(CoupledNe)=c(4);
+C(BaseFrequencyNe)=c(5);
+C(FMNe)=c(6);
+
+D=ones(TotalNe,1);
+D(BoundNe)=d(1);
+D(ShiftNe)=d(2);
+D(InhibitionNe)=d(3);
+D(CoupledNe)=d(4);
+D(BaseFrequencyNe)=d(5);
+D(FMNe)=d(6);
+
+Ibias=ones(TotalNe,1);
+Ibias(BoundNe)=IB(1);
+Ibias(ShiftNe)=IB(2);
+Ibias(InhibitionNe)=IB(3);
+Ibias(CoupledNe)=IB(4);
+Ibias(BaseFrequencyNe)=IB(5);
+Ibias(FMNe)=IB(6);
+
+%{
 A=[a(1)*ones(BoundNe,1);a(2)*ones(ShiftNe,1);a(3)*ones(InhibitionNe,1);a(4)*ones(CoupledNe,1);a(5)*ones(BaseFrequencyNe,1);a(6)*ones(FMNe,1)];
 B=[b(1)*ones(BoundNe,1);b(2)*ones(ShiftNe,1);b(3)*ones(InhibitionNe,1);b(4)*ones(CoupledNe,1);b(5)*ones(BaseFrequencyNe,1);b(6)*ones(FMNe,1)];
 C=[c(1)*ones(BoundNe,1);c(2)*ones(ShiftNe,1);c(3)*ones(InhibitionNe,1);c(4)*ones(CoupledNe,1);c(5)*ones(BaseFrequencyNe,1);c(6)*ones(FMNe,1)];
 D=[d(1)*ones(BoundNe,1);d(2)*ones(ShiftNe,1);d(3)*ones(InhibitionNe,1);d(4)*ones(CoupledNe,1);d(5)*ones(BaseFrequencyNe,1);d(6)*ones(FMNe,1)];
-
 Ibias=[IB(1)*ones(BoundNe,1);IB(2)*ones(ShiftNe,1);IB(3)*ones(InhibitionNe,1);IB(4)*ones(CoupledNe,1);IB(5)*ones(BaseFrequencyNe,1);IB(6)*ones(FMNe,1)];
+%}
+
 Inoise=NoiseStrengthBase*normrnd(0,1,[TotalNe,1]);
 ExternalI=0*ones(TotalNe,1);
 
@@ -96,14 +140,14 @@ parfor l=1:length(Velocity)     % parallel for
         Inoise=NoiseStrengthBase*normrnd(0,1,[TotalNe,1]);
  
         if t>StimulationOnset && t<=StimulationOffset
-            ExternalI(StimulusNeuron)=StimuluStrength(1);
+            ExternalI(StimulusNeuron)=StimuluStrength;
         else
             ExternalI(StimulusNeuron)=0;
         end
-
-        fired1=find(v(1:BoundNe+ShiftNe+InhibitionNe)>=Vth);
-        fired2=find(v(BoundNe+ShiftNe+InhibitionNe+1:end)>=Vth);
-        fired2=fired2+(BoundNe+ShiftNe+InhibitionNe);
+        
+        fired1=find(v(1:InhibitionNe)>=Vth);
+        fired2=find(v(InhibitionNe+1:end)>=Vth);
+        fired2=fired2+InhibitionNe;
         fired=[fired1;fired2];
         v(fired)=C(fired);
         u(fired)=u(fired)+D(fired);
@@ -111,15 +155,13 @@ parfor l=1:length(Velocity)     % parallel for
         S1=S1+sum(1*g1(:,fired1),2)-(S1/Tau1)*DeltaT;
         S2=S2+sum(1*g2(:,fired2),2)-(S2/Tau2)*DeltaT;
         if ModulationCurrent>0
-            %ExternalI = [zeros(BoundNe,1);ModulationCurrent*ones(ShiftNe/2,1);zeros(ShiftNe/2+InhibitionNe,1);Speed*ones(CoupledNe-InhibitionNe+1,1);zeros(TotalNe-BoundNe-ShiftNe-CoupledNe-1,1)];
-	        ExternalI(BoundNe+1:ShiftNe/2+BoundNe)=ModulationCurrent;
-	        ExternalI(ShiftNe+BoundNe+InhibitionNe+1:ShiftNe+BoundNe+1+CoupledNe)=Speed;
+	        ExternalI(RightShiftNe)=ModulationCurrent;
+	        ExternalI(CoupledNe)=Speed;
         elseif ModulationCurrent<0
-            %ExternalI = [zeros(ShiftNe,1);abs(ModulationCurrent)*ones(BoundNe,1);zeros(InhibitionNe,1);Speed*ones(CoupledNe-InhibitionNe+1,1);zeros(TotalNe-ShiftNe-BoundNe-CoupledNe-1,1)];
-	        ExternalI(ShiftNe+1:ShiftNe+BoundNe)=abs(ModulationCurrent);
-	        ExternalI(ShiftNe+BoundNe+InhibitionNe+1:ShiftNe+BoundNe+1+CoupledNe)=Speed;
+	        ExternalI(LeftShiftNe)=abs(ModulationCurrent);
+	        ExternalI(CoupledNe)=Speed;
         else
-	        ExternalI(BoundNe+1:ShiftNe+BoundNe)=0;
+	        ExternalI(ShiftNe)=0;
         end
  
         I=ExternalI+S1+S2+Inoise+Ibias;
@@ -155,12 +197,14 @@ parfor l=1:length(Velocity)     % parallel for
         Potential=cat(1,Potential,temp);
         %temp=transpose([t*DeltaT;S1]);
         %SynapticCurrent1=cat(1,SynapticCurrent1,temp);
-        %temp=transpose([t*DeltaT;S2]);
-        %SynapticCurrent2=cat(1,SynapticCurrent2,temp);
+        temp=transpose([t*DeltaT;S2]);
+        SynapticCurrent2=cat(1,SynapticCurrent2,temp);
     end
     foldername=num2str(Velocity(l));
     mkdir (foldername);
 
+    % save Potential pictures, datas, and triggering records
+    % save SynapticCurrent2 pictures and datas
     for N=1:TotalNe     % save Potential pictures, datas, and triggering records
         fig=plot(Potential(:,1),Potential(:,N+1),'b-');
         saveas(fig,strcat(num2str(l),'NeuronV_',num2str(N),'.png'));
@@ -169,6 +213,17 @@ parfor l=1:length(Velocity)     % parallel for
         m.x=Potential(:,1);
         m.y=Potential(:,N+1);
         copyfile(strcat(num2str(l),'NeuronV_',num2str(N),'.mat'),foldername);
+        
+        
+        fig=plot(SynapticCurrent2(:,1),SynapticCurrent2(:,N+1),'b-');
+        saveas(fig,strcat(num2str(l),'CurrentV_',num2str(N),'.png'));
+        copyfile(strcat(num2str(l),'CurrentV_',num2str(N),'.png'),foldername);
+        n=matfile(sprintf('%dCurrentV_%d.mat',l,N),'writable',true);
+        n.x=SynapticCurrent2(:,1);
+        n.y=SynapticCurrent2(:,N+1);
+        copyfile(strcat(num2str(l),'CurrentV_',num2str(N),'.mat'),foldername);
+        
+        
         %fig=plot(SynapticCurrent1(:,1),SynapticCurrent1(:,N+1),'b-');
         %saveas(fig,strcat('NeuronC1','_',num2str(N),'.png'));
         %fig=plot(SynapticCurrent2(:,1),SynapticCurrent2(:,N+1),'b-');
@@ -179,10 +234,18 @@ parfor l=1:length(Velocity)     % parallel for
         threshold_record(Potential(:,N+1),DeltaT,40,fileID);    % use 40mV as threshold voltage
         fclose(fileID);
         copyfile(filename,foldername);
+        
+        formatSpec = '%dCurrentV_%d.txt';
+        filename = sprintf(formatSpec,l,N);
+        fileID = fopen(filename,'w');
+        median_record(SynapticCurrent2(:,N+1),fileID);  % record the current median for comparing
+        fclose(fileID);
+        copyfile(filename,foldername);
     end
 end
 
 delete *NeuronV_*.*         % clear unnecessary files
+delete *CurrentV_*.*
 toc
 
 delete(gcp('nocreate'));
