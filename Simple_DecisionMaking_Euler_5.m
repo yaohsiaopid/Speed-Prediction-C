@@ -8,14 +8,13 @@ parpool('local',4)  % parallel with 4 cores.
 clc
 clear
 tic
-SimulationTime=1600;    % ms
+SimulationTime=2000;    % ms
 DeltaT=0.01;            % ms
 Vr=10;
 Vth=130;
 NoiseStrengthBase=0;
 %Velocity=[0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,6,7];
 Velocity=[0:0.5:9.5];   % Speed current(nA) of interest
-ShiftCurrent=5.1:0.1:5.9;
 StimuluStrength=5.5;
 StimulusNeuron=1;
 StimulationOnset=300;   % start at 300ms
@@ -25,7 +24,8 @@ StimulationOffset=StimulationOffset/DeltaT;
 Direction=[0,4,-4.5];
 ModulationCurrent=Direction(2);
 %FMCurrent=14.6:0.1:15.7;
-InhibitionCurrent=[-4, -2, 2, 4];
+%InhibitionCurrent=0;
+ShiftCurrent=4.5:0.1:4.8;
 %Speed=1.5;
 
 % Neuron index
@@ -115,15 +115,17 @@ S2=0*ones(TotalNe,1);
 Tau1=10;
 Tau2=5;
 
-Potential=transpose([0;v]);
+%Potential=zeros(SimulationTime/DeltaT+1,TotalNe+1);
+%Potential(1,:)=transpose([0;v]);
+%Potential=transpose([0;v]);
 SynapticCurrent1=transpose([0;S1]);
 SynapticCurrent2=transpose([0;S2]);
 g1=transpose(full(spconvert(dlmread('Connection_Table_temp.txt'))));
 g2=transpose(full(spconvert(dlmread('Connection_Table_temp_short.txt'))));
 
-%for l=1:length(Velocity)
-parfor l=1:length(InhibitionCurrent)    % parallel for
-                                        % change back to "for" loop if encounter problems
+%for l=1:length(ShiftCurrent)
+parfor l=1:length(ShiftCurrent) % parallel for
+                                % change back to "for" loop if encounter problems
     %Speed=Velocity(l);
     Speed=Velocity(5);
     ExternalI=0*ones(TotalNe,1);
@@ -134,14 +136,18 @@ parfor l=1:length(InhibitionCurrent)    % parallel for
     S2=0*ones(TotalNe,1);
     Tau1=10;
     Tau2=5;
-    Potential=transpose([0;v]);
+    Potential=zeros(SimulationTime/DeltaT+1,TotalNe+1);
+    Potential(1,:)=transpose([0;v]);
+    %Potential=transpose([0;v]);
     SynapticCurrent1=transpose([0;S1]);
     SynapticCurrent2=transpose([0;S2]);
     I=0*ones(TotalNe,1);
-    TotalCurrent= transpose([0;I]);
+    TotalCurrent=zeros(SimulationTime/DeltaT+1,TotalNe+1);
+    TotalCurrent(1,:)=transpose([0;I]);
+    %TotalCurrent= transpose([0;I]);
 
     for t=1:SimulationTime/DeltaT   % simulation time ms
-        disp(InhibitionCurrent(l));
+        disp(ShiftCurrent(l));
         disp(t);
         Inoise=NoiseStrengthBase*normrnd(0,1,[TotalNe,1]);
  
@@ -170,8 +176,8 @@ parfor l=1:length(InhibitionCurrent)    % parallel for
 	        ExternalI(ShiftNe)=0;
         end
         
-        ExternalI(RightShiftNe)=4.8;
-        ExternalI(InhibitionNe)=InhibitionCurrent(l);
+        ExternalI(RightShiftNe)=ShiftCurrent(l);
+        %ExternalI(InhibitionNe)=InhibitionCurrent(l);
  
         I=ExternalI+S1+S2+Inoise+Ibias;
   
@@ -203,15 +209,18 @@ parfor l=1:length(InhibitionCurrent)    % parallel for
         %}
   
         temp=transpose([t*DeltaT;v]);
-        Potential=cat(1,Potential,temp);
+        Potential(t+1,:)=temp;
+        %Potential=cat(1,Potential,temp);
         %temp=transpose([t*DeltaT;S1]);
         %SynapticCurrent1=cat(1,SynapticCurrent1,temp);
         %temp=transpose([t*DeltaT;S2]);
         %SynapticCurrent2=cat(1,SynapticCurrent2,temp);
         temp=transpose([t*DeltaT;I]);
-        TotalCurrent=cat(1,TotalCurrent,temp);
+        TotalCurrent(t+1,:)=temp;
+        %TotalCurrent=cat(1,TotalCurrent,temp);
+                
     end
-    foldername=num2str(InhibitionCurrent(l));
+    foldername=num2str(ShiftCurrent(l));
     mkdir (foldername);
 
     % save Potential pictures, datas, and triggering records
@@ -246,12 +255,14 @@ parfor l=1:length(InhibitionCurrent)    % parallel for
         fclose(fileID);
         copyfile(filename,foldername);
         
+        
         formatSpec = '%dCurrentV_%d.txt';
         filename = sprintf(formatSpec,l,N);
         fileID = fopen(filename,'w');
         median_record(TotalCurrent(:,N+1),fileID);  % record the current median for comparing
         fclose(fileID);
         copyfile(filename,foldername);
+        
     end
 end
 
