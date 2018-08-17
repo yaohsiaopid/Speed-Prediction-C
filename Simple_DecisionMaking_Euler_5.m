@@ -25,7 +25,7 @@ Direction=[0,4,-4.5];
 ModulationCurrent=Direction(2);
 %FMCurrent=14.6:0.1:15.7;
 %InhibitionCurrent=0;
-ShiftCurrent=4.5:0.1:4.8;
+ShiftCurrent=3:0.5:9;
 %Speed=1.5;
 
 % Neuron index
