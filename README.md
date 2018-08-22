@@ -14,3 +14,6 @@ then do the decisionmaking with MATLAB.
 [Slowest FM Comparator](https://drive.google.com/file/d/1xl6Wibq4oQ6SDoP2sHG8zL2SE4Oa9nvg/view)
 
 [Fast FM Comparator](https://drive.google.com/file/d/1GLgBr6w9b6024tHsDPrXrZzII31C7597/view)
+
+[illustration of how the circuit works](!https://i.imgur.com/vJFjrNe.png)
+
