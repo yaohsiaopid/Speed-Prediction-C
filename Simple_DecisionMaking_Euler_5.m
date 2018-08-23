@@ -1,8 +1,9 @@
 % Created by Eugene M. Izhikevich, February 25, 2003
+% Modefied by Chen-Fu Yeh, 2018
 % Excitatory neurons    Inhibitory neurons
 
 ver distcomp        % show the version of Parallel Computing Toolbox
-parpool('local',4)  % parallel with 4 cores.
+%parpool('local',4)  % parallel with 4 cores.
                     % adjust to the actual processor core number.
 
 clc
@@ -14,19 +15,17 @@ Vr=10;
 Vth=130;
 NoiseStrengthBase=0;
 %Velocity=[0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,6,7];
-Velocity=[0:0.5:9.5];   % Speed current(nA) of interest
+%Velocity=[0:0.5:9.5];       % Speed current(nA) of interest
 StimuluStrength=5.5;
 StimulusNeuron=1;
-StimulationOnset=300;   % start at 300ms
+StimulationOnset=300;       % start at 300ms
 StimulationOffset=305;
 StimulationOnset=StimulationOnset/DeltaT;
 StimulationOffset=StimulationOffset/DeltaT;
 Direction=[0,4,-4.5];
 ModulationCurrent=Direction(2);
 %FMCurrent=14.6:0.1:15.7;
-%InhibitionCurrent=0;
-ShiftCurrent=3:0.5:9;
-%Speed=1.5;
+ShiftCurrent=4.5:0.5:6;     % shift current(nA) of interest
 
 % Neuron index
 BoundNe=1:8;        % main bump neurons
@@ -123,11 +122,11 @@ SynapticCurrent2=transpose([0;S2]);
 g1=transpose(full(spconvert(dlmread('Connection_Table_temp.txt'))));
 g2=transpose(full(spconvert(dlmread('Connection_Table_temp_short.txt'))));
 
-%for l=1:length(ShiftCurrent)
-parfor l=1:length(ShiftCurrent) % parallel for
+for l=1:length(ShiftCurrent)
+%parfor l=1:length(ShiftCurrent) % parallel for
                                 % change back to "for" loop if encounter problems
     %Speed=Velocity(l);
-    Speed=Velocity(5);
+    Speed=2.5;
     ExternalI=0*ones(TotalNe,1);
     v=Vr.*ones(TotalNe,1);
     v(TotalNe-1)=70;
@@ -193,21 +192,6 @@ parfor l=1:length(ShiftCurrent) % parallel for
         v= v + (DeltaT/6)*(fa1 + 2*fa2 + 2*fa3 + fa4);
         u= u + (DeltaT/6)*(fb1 + 2*fb2 + 2*fb3 + fb4);
   
-        %v=v+funca(v,u,B,I,DeltaT)*DeltaT;
-        %u=u+funcb(A,B,v,u,DeltaT)*DeltaT;
-        %xn+1 = xn + h 
-        %yn+1 = yn + (h/2) (f(xn, yn) + f(xn + h, yn +  h f(xn, yn)))
-
-        %{
-        VK1=funca(v,u,B,I,DeltaT);
-        UK1=funcb(A,B,v,u,DeltaT);
-        VK2=funca(v+VK1*DeltaT,u+UK1*DeltaT,B,I,DeltaT);
-        UK2=funcb(A,B,v+VK1*DeltaT,u+UK1*DeltaT,DeltaT);
-  
-        v=v+(DeltaT/2)*(VK1+VK2);
-        u=u+(DeltaT/2)*(UK1+UK2);
-        %}
-  
         temp=transpose([t*DeltaT;v]);
         Potential(t+1,:)=temp;
         %Potential=cat(1,Potential,temp);
@@ -223,9 +207,10 @@ parfor l=1:length(ShiftCurrent) % parallel for
     foldername=num2str(ShiftCurrent(l));
     mkdir (foldername);
 
-    % save Potential pictures, datas, and triggering records
-    % save SynapticCurrent2 pictures and datas
-    for N=1:TotalNe     % save Potential pictures, datas, and triggering records
+    % save some datas
+    for N=1:TotalNe
+
+        % save neuron potential
         fig=plot(Potential(:,1),Potential(:,N+1),'b-');
         saveas(fig,strcat(num2str(l),'NeuronV_',num2str(N),'.png'));
         copyfile(strcat(num2str(l),'NeuronV_',num2str(N),'.png'),foldername);
@@ -234,7 +219,7 @@ parfor l=1:length(ShiftCurrent) % parallel for
         m.y=Potential(:,N+1);
         copyfile(strcat(num2str(l),'NeuronV_',num2str(N),'.mat'),foldername);
         
-        
+        % save neuron input current
         fig=plot(TotalCurrent(:,1),TotalCurrent(:,N+1),'b-');
         saveas(fig,strcat(num2str(l),'CurrentV_',num2str(N),'.png'));
         copyfile(strcat(num2str(l),'CurrentV_',num2str(N),'.png'),foldername);
@@ -243,11 +228,7 @@ parfor l=1:length(ShiftCurrent) % parallel for
         n.y=TotalCurrent(:,N+1);
         copyfile(strcat(num2str(l),'CurrentV_',num2str(N),'.mat'),foldername);
         
-        
-        %fig=plot(SynapticCurrent1(:,1),SynapticCurrent1(:,N+1),'b-');
-        %saveas(fig,strcat('NeuronC1','_',num2str(N),'.png'));
-        %fig=plot(SynapticCurrent2(:,1),SynapticCurrent2(:,N+1),'b-');
-        %saveas(fig,strcat('NeuronC2','_',num2str(N),'.png'));
+        % save neuron triggering histories
         formatSpec = '%dNeuronV_%d.txt';
         filename = sprintf(formatSpec,l,N);
         fileID = fopen(filename,'w');
@@ -255,7 +236,7 @@ parfor l=1:length(ShiftCurrent) % parallel for
         fclose(fileID);
         copyfile(filename,foldername);
         
-        
+        % save neuron input current medians
         formatSpec = '%dCurrentV_%d.txt';
         filename = sprintf(formatSpec,l,N);
         fileID = fopen(filename,'w');
@@ -270,6 +251,4 @@ delete *NeuronV_*.*         % clear unnecessary files
 delete *CurrentV_*.*
 toc
 
-delete(gcp('nocreate'));
-
-
+%delete(gcp('nocreate'));    % close parallel pools
