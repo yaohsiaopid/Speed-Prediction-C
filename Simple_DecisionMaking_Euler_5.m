@@ -3,7 +3,7 @@
 % Excitatory neurons    Inhibitory neurons
 
 ver distcomp        % show the version of Parallel Computing Toolbox
-parpool('local',4)  % parallel with 4 cores.
+%parpool('local',4)  % parallel with 4 cores.
                     % adjust to the actual processor core number.
 
 clc
@@ -13,19 +13,20 @@ SimulationTime=2000;    % ms
 DeltaT=0.01;            % ms
 Vr=10;
 Vth=130;
-NoiseStrengthBase=0;
+NoiseStrengthBase=1;
 %Velocity=[0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,6,7];
-%Velocity=[0:0.5:9.5];       % Speed current(nA) of interest
+Velocity=0:0.5:3.5; % Speed current(nA) of interest
 StimuluStrength=5.5;
 StimulusNeuron=1;
-StimulationOnset=300;       % start at 300ms
+StimulationOnset=300;           % start at 300ms
 StimulationOffset=305;
 StimulationOnset=StimulationOnset/DeltaT;
 StimulationOffset=StimulationOffset/DeltaT;
-Direction=[0,4,-4.5];
+%Direction=[0,4,-4.5];
+Direction=[0,1.7,-4.5];
 ModulationCurrent=Direction(2);
 %FMCurrent=14.6:0.1:15.7;
-ShiftCurrent=4.5:0.5:6;     % shift current(nA) of interest
+%ShiftCurrent=4.5:0.5:6;        % shift current(nA) of interest
 
 % Neuron index
 BoundNe=1:8;        % main bump neurons
@@ -35,8 +36,8 @@ ShiftNe=9:22;
 InhibitionNe=23;
 CoupledNe=24:25;
 BaseFrequencyNe=26;
-FMNe=27;            % frequency modulation neuron
-TotalNe=FMNe;
+FMNe=27:29;         % frequency modulation neuron
+TotalNe=29;
 
 %{
 a=[0.04,0.04,0.04,0.02,0.02,0.02];
@@ -52,6 +53,7 @@ a=[0.04,0.04,0.04,0.02,0.02,0.02];
 b=[0.1,0.1,0.1,0.2,0.2,0.2];
 c=[-39.5,-52,-57,-45,-39.5,-57];
 d=[0.1,0.1,0.1,0.1,0.1,0.1];
+%IB=[9.4,2,-2,16,10,-11];
 IB=[9.4,2,-2,16,10,-11];
 c=c+100;                            % change offset to make all voltage positive
 
@@ -122,11 +124,11 @@ SynapticCurrent2=transpose([0;S2]);
 g1=transpose(full(spconvert(dlmread('Connection_Table_temp.txt'))));
 g2=transpose(full(spconvert(dlmread('Connection_Table_temp_short.txt'))));
 
-%for l=1:length(ShiftCurrent)
-parfor l=1:length(ShiftCurrent) % parallel for
+for l=1:length(Velocity)
+%parfor l=1:length(Velocity)     % parallel for
                                 % change back to "for" loop if encounter problems
-    %Speed=Velocity(l);
-    Speed=2.5;
+    Speed=Velocity(l);
+    %Speed=2.5;
     ExternalI=0*ones(TotalNe,1);
     v=Vr.*ones(TotalNe,1);
     v(TotalNe-1)=70;
@@ -146,7 +148,9 @@ parfor l=1:length(ShiftCurrent) % parallel for
     %TotalCurrent= transpose([0;I]);
 
     for t=1:SimulationTime/DeltaT   % simulation time ms
-        disp(ShiftCurrent(l));
+        
+        %disp(ShiftCurrent(l));
+        disp(Velocity(l));
         disp(t);
         Inoise=NoiseStrengthBase*normrnd(0,1,[TotalNe,1]);
  
@@ -175,8 +179,9 @@ parfor l=1:length(ShiftCurrent) % parallel for
 	        ExternalI(ShiftNe)=0;
         end
         
-        ExternalI(RightShiftNe)=ShiftCurrent(l);
+        %ExternalI(RightShiftNe)=ShiftCurrent(l);
         %ExternalI(InhibitionNe)=InhibitionCurrent(l);
+        ExternalI(LeftShiftNe)=-2;
  
         I=ExternalI+S1+S2+Inoise+Ibias;
   
@@ -204,7 +209,9 @@ parfor l=1:length(ShiftCurrent) % parallel for
         %TotalCurrent=cat(1,TotalCurrent,temp);
                 
     end
-    foldername=num2str(ShiftCurrent(l));
+    
+    %foldername=num2str(ShiftCurrent(l));
+    foldername=num2str(Velocity(l));
     mkdir (foldername);
 
     % save some datas
@@ -232,7 +239,7 @@ parfor l=1:length(ShiftCurrent) % parallel for
         formatSpec = '%dNeuronV_%d.txt';
         filename = sprintf(formatSpec,l,N);
         fileID = fopen(filename,'w');
-        threshold_record(Potential(:,N+1),DeltaT,40,fileID);    % use 40mV as threshold voltage
+        threshold_record(Potential(:,N+1),DeltaT,42.5,fileID);  % use 40mV as threshold voltage
         fclose(fileID);
         copyfile(filename,foldername);
         
@@ -247,9 +254,13 @@ parfor l=1:length(ShiftCurrent) % parallel for
     end
 end
 
+% put spreadsheet generating function here...
+% ...
+% function ends
+
 delete *NeuronV_*.*         % clear unnecessary files
 delete *CurrentV_*.*
 toc
 
-delete(gcp('nocreate'));    % close parallel pools
+%delete(gcp('nocreate'));    % close parallel pools
 
