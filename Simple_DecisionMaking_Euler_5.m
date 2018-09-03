@@ -3,7 +3,7 @@
 % Excitatory neurons    Inhibitory neurons
 
 ver distcomp        % show the version of Parallel Computing Toolbox
-parpool('local',4)  % parallel with 4 cores.
+%parpool('local',4)  % parallel with 4 cores.
                     % adjust to the actual processor core number.
 
 clc
@@ -124,8 +124,8 @@ SynapticCurrent2=transpose([0;S2]);
 g1=transpose(full(spconvert(dlmread('Connection_Table_temp.txt'))));
 g2=transpose(full(spconvert(dlmread('Connection_Table_temp_short.txt'))));
 
-%for l=1:length(Velocity)
-parfor l=1:length(Velocity)     % parallel for
+for l=1:length(Velocity)
+%parfor l=1:length(Velocity)     % parallel for
                                 % change back to "for" loop if encounter problems
     Speed=Velocity(l);
     %Speed=2.5;
@@ -262,5 +262,5 @@ delete *NeuronV_*.*         % clear unnecessary files
 delete *CurrentV_*.*
 toc
 
-delete(gcp('nocreate'));    % close parallel pools
+%delete(gcp('nocreate'));    % close parallel pools
 
