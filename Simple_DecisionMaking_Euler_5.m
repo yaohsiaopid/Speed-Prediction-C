@@ -3,25 +3,26 @@
 % Excitatory neurons    Inhibitory neurons
 
 ver distcomp        % show the version of Parallel Computing Toolbox
-%parpool('local',4) % parallel with 4 cores.
+parpool('local',4) % parallel with 4 cores.
                     % adjust to the actual processor core number.
 
 clc
 clear
 tic
-SimulationTime=1000;    % ms
+SimulationTime=1150;    % ms
 DeltaT=0.01;            % ms
 CameraFps=60;           % Hz of motion_estimation camera
 DeltaC=1000/CameraFps;  % ms
 Vr=10;
 Vth=130;
-NoiseStrengthBase=1;
+NoiseStrengthBase=0;
 %Velocity=[0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,6,7];
-Velocity=0:0.5:3.5; % Speed current(nA) of interest
+Velocity=0:0.5:3.5;     % target Speed current(nA).
+                        % should be adjusted to fit actual saliencies.
 StimuluStrength=5.5;
 StimulusNeuron=1;
-StimulationOnset=300;           % start at 300ms
-StimulationOffset=305;
+StimulationOnset=150;     % start at 300ms
+StimulationOffset=155;
 StimulationOnset=StimulationOnset/DeltaT;
 StimulationOffset=StimulationOffset/DeltaT;
 %Direction=[0,4,-4.5];
@@ -29,6 +30,8 @@ Direction=[0,1.7,-4.5];
 ModulationCurrent=Direction(2);
 %FMCurrent=14.6:0.1:15.7;
 %ShiftCurrent=4.5:0.5:6;        % shift current(nA) of interest
+
+%BumpIsAt_temp=0;
 
 % Neuron index
 BoundNe=1:8;        % main bump neurons
@@ -38,8 +41,8 @@ ShiftNe=9:22;
 InhibitionNe=23;
 CoupledNe=24:25;
 BaseFrequencyNe=26;
-FMNe=27:29;         % frequency modulation neuron
-TotalNe=29;
+FMNe=27;            % frequency modulation neuron
+TotalNe=27;
 
 %{
 a=[0.04,0.04,0.04,0.02,0.02,0.02];
@@ -127,8 +130,8 @@ g1=transpose(full(spconvert(dlmread('Connection_Table_temp.txt'))));
 g2=transpose(full(spconvert(dlmread('Connection_Table_temp_short.txt'))));
 
 % simulating for each speeds
-for l=1:length(Velocity)
-%parfor l=1:length(Velocity)    % parallel for
+%for l=1:length(Velocity)
+parfor l=1:length(Velocity)     % parallel for
                                 % change back to "for" loop if encounter problems
     Speed=Velocity(l);
     %Speed=2.5;
@@ -149,12 +152,16 @@ for l=1:length(Velocity)
     TotalCurrent=zeros(SimulationTime/DeltaT+1,TotalNe+1);
     TotalCurrent(1,:)=transpose([0;I]);
     %TotalCurrent= transpose([0;I]);
+    BumpIsAt=zeros(SimulationTime/DeltaT+1,2);
+    BumpIsAt_temp=0;
+    Prediction=zeros(round(SimulationTime/DeltaC),2);
+    CameraI=1;
 
     for t=1:SimulationTime/DeltaT   % simulation time ms
         
         %disp(ShiftCurrent(l));
-        disp(Velocity(l));
-        disp(t);
+        %disp(Velocity(l));
+        %disp(t);
         Inoise=NoiseStrengthBase*normrnd(0,1,[TotalNe,1]);
  
         if t>StimulationOnset && t<=StimulationOffset
@@ -166,9 +173,23 @@ for l=1:length(Velocity)
         fired1=find(v(1:InhibitionNe)>=Vth);
         fired2=find(v(InhibitionNe+1:end)>=Vth);
         fired2=fired2+InhibitionNe;
+        fired3=find(v(BoundNe)>=Vth);
         fired=[fired1;fired2];
         v(fired)=C(fired);
         u(fired)=u(fired)+D(fired);
+
+        BumpIsAt(t,1)=t-1;
+        if fired3
+            BumpIsAt_temp=fired3(1);
+        end
+        %disp(BumpIsAt_temp);
+        BumpIsAt(t,2)=BumpIsAt_temp;
+        if (mod(t*DeltaT,DeltaC) < 0.9) && (mod(t*DeltaT,1) == 0) && (t*DeltaT >= 150)
+            Prediction(CameraI,1)=CameraI;
+            Prediction(CameraI,2)=BumpIsAt_temp;
+            CameraI = CameraI+1;
+            disp(t);
+        end
 
         S1=S1+sum(1*g1(:,fired1),2)-(S1/Tau1)*DeltaT;
         S2=S2+sum(1*g2(:,fired2),2)-(S2/Tau2)*DeltaT;
@@ -253,8 +274,21 @@ for l=1:length(Velocity)
         median_record(TotalCurrent(:,N+1),fileID);  % record the current median for comparing
         fclose(fileID);
         copyfile(filename,foldername);
-        
     end
+    
+    % save where the bump is at
+    m=matfile(sprintf('%dBump.mat',l),'writable',true);
+    m.x=BumpIsAt(:,1);
+    m.y=BumpIsAt(:,2);
+    copyfile(strcat(num2str(l),'Bump.mat'),foldername);
+    
+    % save camera saliencies
+    formatSpec = '%dPrediction.txt';
+    filename = sprintf(formatSpec,l);
+    fileID = fopen(filename,'w');
+    fprintf(fileID,'%d %d\n',transpose(Prediction));
+    copyfile(filename,foldername);
+
 end
 
 % put spreadsheet generating function here...
@@ -263,7 +297,9 @@ end
 
 delete *NeuronV_*.*         % clear unnecessary files
 delete *CurrentV_*.*
+delete *Prediction.txt
+delete *Bump.mat
 toc
 
-%delete(gcp('nocreate'));   % close parallel pools
+delete(gcp('nocreate'));   % close parallel pools
 

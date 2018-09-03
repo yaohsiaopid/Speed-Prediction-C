@@ -12,7 +12,8 @@ if __name__ == '__main__':
     InhibitionNeuron=NeuronNumber+ShiftingNeuron*2+1
     CoupledNe=InhibitionNeuron+2
     BaseFrequencyNe=CoupledNe+1
-    FMNe=BaseFrequencyNe+3
+    #FMNe=BaseFrequencyNe+3
+    FMNe=BaseFrequencyNe+1
     
     
     
@@ -28,7 +29,7 @@ if __name__ == '__main__':
     BombToShift=0.55
     ShiftToBomb=0.6
     #FMEToBump=4
-    FMEToShift=1.1
+    FMEToShift=4
     #BaseToFM=2
     CoupledInter=0.5
     CoupleToFM=BaseToFM=1.5
@@ -68,19 +69,20 @@ if __name__ == '__main__':
             print>>output,i,i+(2*ShiftingNeuron),BombToShift
             print>>output,i+(2*ShiftingNeuron),i-1,ShiftToBomb
 
-    for i in range(FMNe-2,FMNe+1):
-        for j in range(FMNe-2,FMNe+1):
-            print>>output,i,j,0
-    #print>>output,FMNe,FMNe,0
+    #for i in range(FMNe-2,FMNe+1):
+    #    for j in range(FMNe-2,FMNe+1):
+    #        print>>output,i,j,0
+    print>>output,FMNe,FMNe,0
 
     for i in range(NeuronNumber+1,NeuronNumber+ShiftingNeuron*2+1):
-		for j in range(FMNe-2,FMNe+1):
-			print>>output2,j,i,FMEToShift
-    for i in range(FMNe-2,FMNe+1):
-        print>>output2,BaseFrequencyNe,i,BaseToFM
-        print>>output2,CoupledNe,i,CoupleToFM
-#    print>>output2,BaseFrequencyNe,FMNe,BaseToFM
-#    print>>output2,CoupledNe,FMNe,CoupleToFM
+        print>>output2,FMNe,i,FMEToShift
+	#	for j in range(FMNe-2,FMNe+1):
+	#		print>>output2,j,i,FMEToShift
+    #for i in range(FMNe-2,FMNe+1):
+    #    print>>output2,BaseFrequencyNe,i,BaseToFM
+    #    print>>output2,CoupledNe,i,CoupleToFM
+    print>>output2,BaseFrequencyNe,FMNe,BaseToFM
+    print>>output2,CoupledNe,FMNe,CoupleToFM
     print>>output2,CoupledNe,CoupledNe-1,CoupledInter
     print>>output2,CoupledNe-1,CoupledNe,CoupledInter
     
