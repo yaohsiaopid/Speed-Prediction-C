@@ -1,4 +1,7 @@
 # Speed-Prediction-Model
+
+(This branch is for optflw integration.)
+
 A Speed-prediction model to simulate bumps of fruitfly neurons.
 
 First generate data with [NetworkGenerator.py](Speed-Prediction-Model/NetworkGenerator.py)
