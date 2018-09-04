@@ -26,10 +26,10 @@ if __name__ == '__main__':
     
     ExcitationToInhibition=1
     GlobalInhibition=-5.8
-    BombToShift=0.55
-    ShiftToBomb=0.6
+    BombToShift=0.35
+    ShiftToBomb=0.3
     #FMEToBump=4
-    FMEToShift=4
+    FMEToShift=3
     #BaseToFM=2
     CoupledInter=0.5
     CoupleToFM=BaseToFM=1.5

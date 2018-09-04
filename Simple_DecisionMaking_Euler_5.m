@@ -3,7 +3,7 @@
 % Excitatory neurons    Inhibitory neurons
 
 ver distcomp        % show the version of Parallel Computing Toolbox
-parpool('local',4) % parallel with 4 cores.
+%parpool('local',4) % parallel with 4 cores.
                     % adjust to the actual processor core number.
 
 clc
@@ -17,7 +17,7 @@ Vr=10;
 Vth=130;
 NoiseStrengthBase=0;
 %Velocity=[0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,6,7];
-Velocity=0:0.5:3.5;     % target Speed current(nA).
+Velocity=0.6:0.1:0.9;     % target Speed current(nA).
                         % should be adjusted to fit actual saliencies.
 StimuluStrength=5.5;
 StimulusNeuron=1;
@@ -25,8 +25,8 @@ StimulationOnset=150;     % start at 300ms
 StimulationOffset=155;
 StimulationOnset=StimulationOnset/DeltaT;
 StimulationOffset=StimulationOffset/DeltaT;
-%Direction=[0,4,-4.5];
-Direction=[0,1.7,-4.5];
+Direction=[0,4,-4.5];
+%Direction=[0,1.7,-4.5];
 ModulationCurrent=Direction(2);
 %FMCurrent=14.6:0.1:15.7;
 %ShiftCurrent=4.5:0.5:6;        % shift current(nA) of interest
@@ -130,8 +130,8 @@ g1=transpose(full(spconvert(dlmread('Connection_Table_temp.txt'))));
 g2=transpose(full(spconvert(dlmread('Connection_Table_temp_short.txt'))));
 
 % simulating for each speeds
-%for l=1:length(Velocity)
-parfor l=1:length(Velocity)     % parallel for
+for l=1:length(Velocity)
+%parfor l=1:length(Velocity)    % parallel for
                                 % change back to "for" loop if encounter problems
     Speed=Velocity(l);
     %Speed=2.5;
@@ -154,7 +154,7 @@ parfor l=1:length(Velocity)     % parallel for
     %TotalCurrent= transpose([0;I]);
     BumpIsAt=zeros(SimulationTime/DeltaT+1,2);
     BumpIsAt_temp=0;
-    Prediction=zeros(round(SimulationTime/DeltaC),2);
+    Prediction=zeros(round((SimulationTime-StimulationOnset)/DeltaC),2);
     CameraI=1;
 
     for t=1:SimulationTime/DeltaT   % simulation time ms
@@ -184,7 +184,7 @@ parfor l=1:length(Velocity)     % parallel for
         end
         %disp(BumpIsAt_temp);
         BumpIsAt(t,2)=BumpIsAt_temp;
-        if (mod(t*DeltaT,DeltaC) < 0.9) && (mod(t*DeltaT,1) == 0) && (t*DeltaT >= 150)
+        if (mod(t*DeltaT,DeltaC) < 0.9) && (mod(t*DeltaT,1) == 0) && (t*DeltaT > 150)
             Prediction(CameraI,1)=CameraI;
             Prediction(CameraI,2)=BumpIsAt_temp;
             CameraI = CameraI+1;
@@ -301,5 +301,5 @@ delete *Prediction.txt
 delete *Bump.mat
 toc
 
-delete(gcp('nocreate'));   % close parallel pools
+%delete(gcp('nocreate'));   % close parallel pools
 
