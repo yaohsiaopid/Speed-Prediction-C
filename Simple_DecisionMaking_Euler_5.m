@@ -2,36 +2,34 @@
 % Modefied by Chen-Fu Yeh, 2018
 % Excitatory neurons    Inhibitory neurons
 
-ver distcomp        % show the version of Parallel Computing Toolbox
-%parpool('local',4) % parallel with 4 cores.
-                    % adjust to the actual processor core number.
+tic
 
+ver distcomp        % show the version of Parallel Computing Toolbox
+%parpool('local',4) % parallel with 4 cores. (i7-7700 4C8T -> 4)
+                    % please adjust to the actual processor core number.
 clc
 clear
-tic
-SimulationTime=1150;    % ms
+SimulationTime=1600;    % ms
 DeltaT=0.01;            % ms
 CameraFps=60;           % Hz of motion_estimation camera
 DeltaC=1000/CameraFps;  % ms
-Vr=10;
-Vth=130;
-NoiseStrengthBase=0;
+Vr=10;                  % membrane potential initial value
+Vth=130;                % membrane potential threshold value
+NoiseStrengthBase=0;    % set nonzero value to add noises
 %Velocity=[0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,6,7];
-Velocity=0.6:0.1:0.9;     % target Speed current(nA).
-                        % should be adjusted to fit actual saliencies.
+Velocity=[0:0.5:3, 4:8];    % target Speed current(nA).
+                            % should be adjusted to fit actual saliencies.
+
+% set parameters to produce first bump
 StimuluStrength=5.5;
 StimulusNeuron=1;
-StimulationOnset=150;     % start at 300ms
-StimulationOffset=155;
+StimulationOnset=75;            % start at 75 ms
+StimulationOffset=80;
 StimulationOnset=StimulationOnset/DeltaT;
 StimulationOffset=StimulationOffset/DeltaT;
-Direction=[0,4,-4.5];
+Direction=[0,4,-4.5];           % direction=[no,right,left]
 %Direction=[0,1.7,-4.5];
-ModulationCurrent=Direction(2);
-%FMCurrent=14.6:0.1:15.7;
-%ShiftCurrent=4.5:0.5:6;        % shift current(nA) of interest
-
-%BumpIsAt_temp=0;
+ModulationCurrent=Direction(2); % set direction
 
 % Neuron index
 BoundNe=1:8;        % main bump neurons
@@ -53,6 +51,7 @@ IB=[9.5,2,-2,16,10,-11];
 c=c+100;
 %}
 
+% set parameters for Izhikevich model equation
 % Bump,Shift,Inh,Couple,Base,FM
 a=[0.04,0.04,0.04,0.02,0.02,0.02];
 b=[0.1,0.1,0.1,0.2,0.2,0.2];
@@ -120,12 +119,10 @@ S1=0*ones(TotalNe,1);
 S2=0*ones(TotalNe,1);
 Tau1=10;
 Tau2=5;
-
-%Potential=zeros(SimulationTime/DeltaT+1,TotalNe+1);
-%Potential(1,:)=transpose([0;v]);
-%Potential=transpose([0;v]);
 SynapticCurrent1=transpose([0;S1]);
 SynapticCurrent2=transpose([0;S2]);
+
+% read neuron weights
 g1=transpose(full(spconvert(dlmread('Connection_Table_temp.txt'))));
 g2=transpose(full(spconvert(dlmread('Connection_Table_temp_short.txt'))));
 
@@ -134,7 +131,8 @@ for l=1:length(Velocity)
 %parfor l=1:length(Velocity)    % parallel for
                                 % change back to "for" loop if encounter problems
     Speed=Velocity(l);
-    %Speed=2.5;
+    
+    % do some initializations
     ExternalI=0*ones(TotalNe,1);
     v=Vr.*ones(TotalNe,1);
     v(TotalNe-1)=70;
@@ -145,25 +143,23 @@ for l=1:length(Velocity)
     Tau2=5;
     Potential=zeros(SimulationTime/DeltaT+1,TotalNe+1);
     Potential(1,:)=transpose([0;v]);
-    %Potential=transpose([0;v]);
     SynapticCurrent1=transpose([0;S1]);
     SynapticCurrent2=transpose([0;S2]);
     I=0*ones(TotalNe,1);
     TotalCurrent=zeros(SimulationTime/DeltaT+1,TotalNe+1);
     TotalCurrent(1,:)=transpose([0;I]);
-    %TotalCurrent= transpose([0;I]);
     BumpIsAt=zeros(SimulationTime/DeltaT+1,2);
     BumpIsAt_temp=0;
     Prediction=zeros(round((SimulationTime-StimulationOnset)/DeltaC),2);
     CameraI=1;
 
-    for t=1:SimulationTime/DeltaT   % simulation time ms
-        
-        %disp(ShiftCurrent(l));
+    % main simulation loop
+    for t=1:SimulationTime/DeltaT
         %disp(Velocity(l));
         %disp(t);
+
         Inoise=NoiseStrengthBase*normrnd(0,1,[TotalNe,1]);
- 
+
         if t>StimulationOnset && t<=StimulationOffset
             ExternalI(StimulusNeuron)=StimuluStrength;
         else
@@ -178,13 +174,14 @@ for l=1:length(Velocity)
         v(fired)=C(fired);
         u(fired)=u(fired)+D(fired);
 
+        % output where the bump is, using camera time stamp (currently 60fps)
         BumpIsAt(t,1)=t-1;
         if fired3
             BumpIsAt_temp=fired3(1);
         end
         %disp(BumpIsAt_temp);
         BumpIsAt(t,2)=BumpIsAt_temp;
-        if (mod(t*DeltaT,DeltaC) < 0.9) && (mod(t*DeltaT,1) == 0) && (t*DeltaT > 150)
+        if (mod(t*DeltaT,DeltaC) < 0.9) && (mod(t*DeltaT,1) == 0) && (t > StimulationOnset)
             Prediction(CameraI,1)=CameraI;
             Prediction(CameraI,2)=BumpIsAt_temp;
             CameraI = CameraI+1;
@@ -193,6 +190,8 @@ for l=1:length(Velocity)
 
         S1=S1+sum(1*g1(:,fired1),2)-(S1/Tau1)*DeltaT;
         S2=S2+sum(1*g2(:,fired2),2)-(S2/Tau2)*DeltaT;
+        
+        % set shift neuron bias current & coupled neuron firing rate
         if ModulationCurrent>0
 	        ExternalI(RightShiftNe)=ModulationCurrent;
 	        ExternalI(CoupledNe)=Speed;
@@ -203,9 +202,7 @@ for l=1:length(Velocity)
 	        ExternalI(ShiftNe)=0;
         end
         
-        %ExternalI(RightShiftNe)=ShiftCurrent(l);
-        %ExternalI(InhibitionNe)=InhibitionCurrent(l);
-        ExternalI(LeftShiftNe)=-2;
+        %ExternalI(LeftShiftNe)=-2;
  
         I=ExternalI+S1+S2+Inoise+Ibias;
   
@@ -223,18 +220,11 @@ for l=1:length(Velocity)
   
         temp=transpose([t*DeltaT;v]);
         Potential(t+1,:)=temp;
-        %Potential=cat(1,Potential,temp);
-        %temp=transpose([t*DeltaT;S1]);
-        %SynapticCurrent1=cat(1,SynapticCurrent1,temp);
-        %temp=transpose([t*DeltaT;S2]);
-        %SynapticCurrent2=cat(1,SynapticCurrent2,temp);
         temp=transpose([t*DeltaT;I]);
         TotalCurrent(t+1,:)=temp;
-        %TotalCurrent=cat(1,TotalCurrent,temp);
                 
     end
     
-    %foldername=num2str(ShiftCurrent(l));
     foldername=num2str(Velocity(l));
     mkdir (foldername);
 
@@ -263,7 +253,7 @@ for l=1:length(Velocity)
         formatSpec = '%dNeuronV_%d.txt';
         filename = sprintf(formatSpec,l,N);
         fileID = fopen(filename,'w');
-        threshold_record(Potential(:,N+1),DeltaT,42.5,fileID);  % use 40mV as threshold voltage
+        threshold_record(Potential(:,N+1),DeltaT,42.5,fileID);
         fclose(fileID);
         copyfile(filename,foldername);
         
@@ -271,7 +261,7 @@ for l=1:length(Velocity)
         formatSpec = '%dCurrentV_%d.txt';
         filename = sprintf(formatSpec,l,N);
         fileID = fopen(filename,'w');
-        median_record(TotalCurrent(:,N+1),fileID);  % record the current median for comparing
+        median_record(TotalCurrent(:,N+1),fileID);
         fclose(fileID);
         copyfile(filename,foldername);
     end
@@ -282,7 +272,7 @@ for l=1:length(Velocity)
     m.y=BumpIsAt(:,2);
     copyfile(strcat(num2str(l),'Bump.mat'),foldername);
     
-    % save camera saliencies
+    % save prediction result
     formatSpec = '%dPrediction.txt';
     filename = sprintf(formatSpec,l);
     fileID = fopen(filename,'w');
@@ -295,11 +285,12 @@ end
 % ...
 % function ends
 
-delete *NeuronV_*.*         % clear unnecessary files
+% clear unnecessary files
+delete *NeuronV_*.*
 delete *CurrentV_*.*
 delete *Prediction.txt
 delete *Bump.mat
-toc
 
 %delete(gcp('nocreate'));   % close parallel pools
 
+toc
