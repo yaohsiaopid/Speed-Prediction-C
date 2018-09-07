@@ -29,7 +29,7 @@ if __name__ == '__main__':
     BombToShift=0.35
     ShiftToBomb=0.3
     #FMEToBump=4
-    FMEToShift=4
+    FMEToShift=3
     #BaseToFM=2
     CoupledInter=0.5
     CoupleToFM=BaseToFM=1.5
