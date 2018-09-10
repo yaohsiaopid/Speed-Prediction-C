@@ -2,9 +2,8 @@
 % Modefied by Chen-Fu Yeh, 2018
 % Excitatory neurons    Inhibitory neurons
 
-ver distcomp        % show the version of Parallel Computing Toolbox
-%parpool('local',4)  % parallel with 4 cores.
-                    % adjust to the actual processor core number.
+% ------------------------------------------------                    
+% ----------env parameter setting-----------------
 
 clc
 clear
@@ -28,11 +27,11 @@ ModulationCurrent=Direction(2);
 %FMCurrent=14.6:0.1:15.7;
 %ShiftCurrent=4.5:0.5:6;        % shift current(nA) of interest
 
-% Neuron index
-BoundNe=1:8;        % main bump neurons
-RightShiftNe=9:15;
-LeftShiftNe=16:22;
-ShiftNe=9:22;
+% Neuron index, constant
+BoundNe=1:8;        % main bump neurons 
+RightShiftNe=9:15;  
+LeftShiftNe=16:22;  
+ShiftNe=9:22;       
 InhibitionNe=23;
 CoupledNe=24:25;
 BaseFrequencyNe=26;
@@ -56,6 +55,10 @@ d=[0.1,0.1,0.1,0.1,0.1,0.1];
 %IB=[9.4,2,-2,16,10,-11];
 IB=[9.4,2,-2,16,10,-11];
 c=c+100;                            % change offset to make all voltage positive
+
+
+% ------------------------------------------------
+% ------------------------------------------------
 
 A=ones(TotalNe,1);
 A(BoundNe)=a(1);
@@ -97,6 +100,8 @@ Ibias(CoupledNe)=IB(4);
 Ibias(BaseFrequencyNe)=IB(5);
 Ibias(FMNe)=IB(6);
 
+% -------------------------------
+% ---------------------------
 %{
 A=[a(1)*ones(BoundNe,1);a(2)*ones(ShiftNe,1);a(3)*ones(InhibitionNe,1);a(4)*ones(CoupledNe,1);a(5)*ones(BaseFrequencyNe,1);a(6)*ones(FMNe,1)];
 B=[b(1)*ones(BoundNe,1);b(2)*ones(ShiftNe,1);b(3)*ones(InhibitionNe,1);b(4)*ones(CoupledNe,1);b(5)*ones(BaseFrequencyNe,1);b(6)*ones(FMNe,1)];
@@ -125,8 +130,6 @@ g1=transpose(full(spconvert(dlmread('Connection_Table_temp.txt'))));
 g2=transpose(full(spconvert(dlmread('Connection_Table_temp_short.txt'))));
 
 for l=1:length(Velocity)
-%parfor l=1:length(Velocity)     % parallel for
-                                % change back to "for" loop if encounter problems
     Speed=Velocity(l);
     %Speed=2.5;
     ExternalI=0*ones(TotalNe,1);
