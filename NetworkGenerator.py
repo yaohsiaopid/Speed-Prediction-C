@@ -1,6 +1,6 @@
 #!/usr/bin/python2
 import numpy as np 
-from pylab import*
+from pylab import *
 import scipy as sp
 
 
@@ -74,8 +74,8 @@ if __name__ == '__main__':
     #print>>output,FMNe,FMNe,0
 
     for i in range(NeuronNumber+1,NeuronNumber+ShiftingNeuron*2+1):
-		for j in range(FMNe-2,FMNe+1):
-			print>>output2,j,i,FMEToShift
+        for j in range(FMNe-2,FMNe+1):
+            print>>output2,j,i,FMEToShift
     for i in range(FMNe-2,FMNe+1):
         print>>output2,BaseFrequencyNe,i,BaseToFM
         print>>output2,CoupledNe,i,CoupleToFM
