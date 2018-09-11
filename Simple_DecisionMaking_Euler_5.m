@@ -15,6 +15,8 @@ Vth=130;
 NoiseStrengthBase=1;
 %Velocity=[0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,6,7];
 Velocity=0:0.5:3.5; % Speed current(nA) of interest
+% test
+Velocity = [1,8];
 StimuluStrength=5.5;
 StimulusNeuron=1;
 StimulationOnset=300;           % start at 300ms
@@ -128,8 +130,9 @@ SynapticCurrent1=transpose([0;S1]);
 SynapticCurrent2=transpose([0;S2]);
 g1=transpose(full(spconvert(dlmread('Connection_Table_temp.txt'))));
 g2=transpose(full(spconvert(dlmread('Connection_Table_temp_short.txt'))));
-
-for l=1:length(Velocity)
+Velocity=[1,8];
+for l=2:length(Velocity)
+    disp('velocity for loop')
     Speed=Velocity(l);
     %Speed=2.5;
     ExternalI=0*ones(TotalNe,1);
@@ -153,8 +156,9 @@ for l=1:length(Velocity)
     for t=1:SimulationTime/DeltaT   % simulation time ms
         
         %disp(ShiftCurrent(l));
-        disp(Velocity(l));
-        disp(t);
+        % disp('1~simulation loop');
+        % disp(Velocity(l));
+        % disp(t);
         Inoise=NoiseStrengthBase*normrnd(0,1,[TotalNe,1]);
  
         if t>StimulationOnset && t<=StimulationOffset
@@ -169,8 +173,13 @@ for l=1:length(Velocity)
         fired=[fired1;fired2];
         v(fired)=C(fired);
         u(fired)=u(fired)+D(fired);
-
-        S1=S1+sum(1*g1(:,fired1),2)-(S1/Tau1)*DeltaT;
+        % reg1 = sum(1*g1(:,fired1),2);
+        % size(reg1) % 28
+        % size(S1) % 27
+    %  %%% matrix dimension incompatible
+    %  
+        % S1 = S1 + reg1;
+%         S1=S1+sum(1*g1(:,fired1),2)-(S1/Tau1)*DeltaT;
         S2=S2+sum(1*g2(:,fired2),2)-(S2/Tau2)*DeltaT;
         if ModulationCurrent>0
 	        ExternalI(RightShiftNe)=ModulationCurrent;
