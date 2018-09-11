@@ -1,6 +1,6 @@
 # Speed-Prediction-Model
 
-(This branch is for optflw integration. The main difference from branch master is that this is for optflw use, so there is no noise.)
+(This branch is for motion\_estimation(former optflw) integration. The main difference from branch master is that this is for optflw use, so there is no noise.)
 
 A Speed-prediction model to simulate bumps of fruitfly neurons.
 

@@ -1,6 +1,9 @@
 % Created by Eugene M. Izhikevich, February 25, 2003
 % Modefied by Chen-Fu Yeh, 2018
 % Excitatory neurons    Inhibitory neurons
+% TODO:
+% Use firing rate detection to output the bump position.
+% Currently this code use threshold detection(commented), not firing rate detection.
 
 tic
 
@@ -9,7 +12,7 @@ ver distcomp        % show the version of Parallel Computing Toolbox
                     % please adjust to the actual processor core number.
 clc
 clear
-SimulationTime=1600;    % ms
+SimulationTime=1200;    % ms
 DeltaT=0.01;            % ms
 CameraFps=60;           % Hz of motion_estimation camera
 DeltaC=1000/CameraFps;  % ms
@@ -17,7 +20,7 @@ Vr=10;                  % membrane potential initial value
 Vth=130;                % membrane potential threshold value
 NoiseStrengthBase=0;    % set nonzero value to add noises
 %Velocity=[0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,6,7];
-Velocity=[0:0.5:3, 4:8];    % target Speed current(nA).
+Velocity=0:3;               % target Speed current(nA).
                             % should be adjusted to fit actual saliencies.
 
 % set parameters to produce first bump
@@ -57,7 +60,6 @@ a=[0.04,0.04,0.04,0.02,0.02,0.02];
 b=[0.1,0.1,0.1,0.2,0.2,0.2];
 c=[-39.5,-52,-57,-45,-39.5,-57];
 d=[0.1,0.1,0.1,0.1,0.1,0.1];
-%IB=[9.4,2,-2,16,10,-11];
 IB=[9.4,2,-2,16,10,-11];
 c=c+100;                            % change offset to make all voltage positive
 
@@ -148,15 +150,17 @@ for l=1:length(Velocity)
     I=0*ones(TotalNe,1);
     TotalCurrent=zeros(SimulationTime/DeltaT+1,TotalNe+1);
     TotalCurrent(1,:)=transpose([0;I]);
+    %{
     BumpIsAt=zeros(SimulationTime/DeltaT+1,2);
     BumpIsAt_temp=0;
     Prediction=zeros(round((SimulationTime-StimulationOnset)/DeltaC),2);
     CameraI=1;
+    %}
 
     % main simulation loop
     for t=1:SimulationTime/DeltaT
-        %disp(Velocity(l));
-        %disp(t);
+        disp(Velocity(l));
+        disp(t);
 
         Inoise=NoiseStrengthBase*normrnd(0,1,[TotalNe,1]);
 
@@ -174,6 +178,7 @@ for l=1:length(Velocity)
         v(fired)=C(fired);
         u(fired)=u(fired)+D(fired);
 
+        %{
         % output where the bump is, using camera time stamp (currently 60fps)
         BumpIsAt(t,1)=t-1;
         if fired3
@@ -187,6 +192,7 @@ for l=1:length(Velocity)
             CameraI = CameraI+1;
             disp(t);
         end
+        %}
 
         S1=S1+sum(1*g1(:,fired1),2)-(S1/Tau1)*DeltaT;
         S2=S2+sum(1*g2(:,fired2),2)-(S2/Tau2)*DeltaT;
@@ -202,8 +208,6 @@ for l=1:length(Velocity)
 	        ExternalI(ShiftNe)=0;
         end
         
-        %ExternalI(LeftShiftNe)=-2;
- 
         I=ExternalI+S1+S2+Inoise+Ibias;
   
         % Izhikevich model implemented by Runge-Kutta methods
@@ -266,6 +270,7 @@ for l=1:length(Velocity)
         copyfile(filename,foldername);
     end
     
+    %{
     % save where the bump is at
     m=matfile(sprintf('%dBump.mat',l),'writable',true);
     m.x=BumpIsAt(:,1);
@@ -278,6 +283,7 @@ for l=1:length(Velocity)
     fileID = fopen(filename,'w');
     fprintf(fileID,'%d %d\n',transpose(Prediction));
     copyfile(filename,foldername);
+    %}
 
 end
 
