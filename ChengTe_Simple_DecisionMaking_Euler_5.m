@@ -72,6 +72,7 @@ Potential=transpose([0;v]);
 size(Potential)
 SynapticCurrent1=transpose([0;S1]);
 SynapticCurrent2=transpose([0;S2]);
+
 g1=transpose(full(spconvert(dlmread('Connection_Table_temp.txt'))));    % YH: 27 by 27 matrix /////sparsematrix  !
 g2=transpose(full(spconvert(dlmread('Connection_Table_temp_short.txt')))); % YH: 27 by 27 matrix
 %Information=dlmread('bmvx2vy2.csv');
@@ -88,10 +89,11 @@ for l=1:1
 	S2=0*ones(TotalNe,1);  % YH:var
 	Tau1=10;
 	Tau2=5;
+
 	Potential=transpose([0;v]); % [0 v(1) v(2) ..... ] % YH: var
 	SynapticCurrent1=transpose([0;S1]);				   
 	SynapticCurrent2=transpose([0;S2]);
-	firings=[];             % spike timings % YH:var, ?: Len
+	firings=[];             % spike timings
 	FirRate=transpose([0*ones(BoundNe+1)]);
 	TimeWindow=15; %ms
 	TimeWindow=TimeWindow/DeltaT;
@@ -110,21 +112,21 @@ for l=1:1
 			ExternalI(StimulusNeuron)=0;
 		end
 		% ?? 	
-		% if mod(t,SpeedChecking)==0
-		% 	x=0;
-		% 	for m=1:8
-		% 		if FirRate(t,m+1)>950
-		% 			x=m
-		% 			temp=[t,(t/16)*DeltaT,x];
-		% 			Position=cat(1,Position,temp);
-		% 		end;
-		% 		%t,m,x,FirRate(t,m+1)
-		% 	end;
-		% 	if x==8
+		if mod(t,SpeedChecking)==0
+			x=0;
+			for m=1:8
+				if FirRate(t,m+1)>950
+					x=m
+					temp=[t,(t/16)*DeltaT,x];
+					Position=cat(1,Position,temp);
+				end;
+				%t,m,x,FirRate(t,m+1)
+			end;
+			if x==8
 
-		% 			break
-		% 	end 
-		% end;	
+					break
+			end 
+		end;	
 		
 	
 		fired1=find(v(1:BoundNe+ShiftNe+InhibitionNe)>=Vth);
