@@ -38,7 +38,7 @@ int main()
 {
     const int ModulationCurrent=Direction[1];
     int Speed=Velocity[1];
-    int i, j;
+    int i, j, k;
     float tmpVal;
     // line 50 init A,B,C,D
     float A[TotalNe], B[TotalNe], C[TotalNe], D[TotalNe], Ibias[TotalNe], ExternalI[TotalNe] = {0}, Inoise[TotalNe], v[TotalNe], u[TotalNe], S1[TotalNe] = {0}, S2[TotalNe] = {0}, Potential[TotalNeA1] = {0}, SynapticCurrent1[TotalNeA1] = {0}, SynapticCurrent2[TotalNeA1] = {0};
@@ -99,12 +99,56 @@ int main()
             //         break;
             // }
 
-            float fired1[TotalNe] = {0}, fired2[TotalNe] = {0}, fired3[TotalNe] = {0}, fired[TotalNe] = {0};
+            int fired1[TotalNe] = {0}, fired2[TotalNe] = {0}, fired3[TotalNe] = {0}, fired[TotalNe] = {0};
             int fired1Num = 0, fired2Num = 0, fired3Num = 0;
-            for(i = 0, j = 0; i < BoundNe + ShiftNe + InhibitionNe; i++) { if(v[i] >= Vth) {fired1[j] = i; fired3[j] = i; j++; fired[j] = i;}} fired1Num = j;
-            for(i = BoundNe + ShiftNe + InhibitionNe, j = 0; i < TotalNe; i++) { if(v[i] >= Vth) {fired2[j] = i; fired3[j + fired1Num] = i; fired[j + fired1Num] = fired2[j]; j++;}} fired2Num = j; fired3Num = fired2Num + fired1Num;
+            for(i = 0, j = 0; i < BoundNe + ShiftNe + InhibitionNe; i++) { if(v[i] >= Vth) {fired1[j] = i; fired3[j] = i; fired[j] = i; v[fired[j]] = C[fired[j]];  u[fired[j]] += D[fired[j]]; j++;}} 
+            fired1Num = j;
+            for(i = BoundNe + ShiftNe + InhibitionNe, j = 0; i < TotalNe; i++) { if(v[i] >= Vth) {fired2[j] = i; fired3[j + fired1Num] = i; fired[j + fired1Num] = i; v[fired[j+fired1Num]] = C[fired[j+fired1Num]]; u[fired[j+fired1Num]] += D[fired[j+fired1Num]]; j++;}} 
+            fired2Num = j; fired3Num = fired2Num + fired1Num;
             for(i = 0; i < fired3Num; i++) { firings[t][i] = t * DeltaT + fired3[i]; firings[t][i+fired3Num] = fired3[i]; }
             
+            int tem[LenFiring] = {0};
+            float temp[BoundNeA1] = {0};
+            temp[0] = t * DeltaT;
+            // line 138 ~ 150 , 152 153 ???
+            // if (t <= TimeWindow) {
+            //     // line 139
+            //     for(i = 0, j = 0; i <= t; i++) { if(firings[i][0] <= t) { tem[j] = i; j++; }
+            //     for(i = 0; i < BoundNe; i++) temp[i+1] = 1000 * 
+
+            // } else {
+
+            // }
+
+            // line 158 159
+            for(i = 0; i < TotalNe; i++) {
+                int tmpSum = 0;
+                for(j = 0; j < fired1Num; j++) tmpSum += g1[i][fired1[j]];
+                S1[i] = S1[i] + tmpSum - (S1[i]/Tau1)*DeltaT;
+                
+                tmpSum = 0;
+                for(j = 0; j < fired2Num; j++) tmpSum += g2[i][fired2[j]];
+                S2[i] = S2[i] + tmpSum - (S2[i]/Tau2)*DeltaT;
+            }
+
+            //line 160
+            if(ModulationCurrent > 0) {
+                for(i = BoundNe; i < ShiftNe/2+BoundNe; i++) ExternalI[i] = ModulationCurrent;
+                for(i = ShiftNe+BoundNe+InhibitionNe; i < ShiftNe+BoundNe+1+CoupledNe; i++) ExternalI[i] = Speed;
+            } else if(ModulationCurrent < 0) {
+                for(i = ShiftNe; i < ShiftNe+BoundNe; i++) ExternalI[i] = -ModulationCurrent;
+                for(i = ShiftNe+BoundNe+InhibitionNe; i < ShiftNe+BoundNe+1+CoupledNe; i++) ExternalI[i] = Speed;
+            } else {
+                for(i = BoundNe; i < ShiftNe+BoundNe; i++) ExternalI[i] = 0;
+            }
+            
+            for(i = 0; i < TotalNe; i++) I[i] = ExternalI[i] + S1[i] + S2[i] + Inoise[i] + Ibias[i];
+
+            
+
+
+        
+
 
 
             

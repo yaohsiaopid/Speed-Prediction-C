@@ -138,14 +138,14 @@ for l=1:1
 		if t<=TimeWindow  
 			tem=find(firings(:,1)<=(t));
 			temp=[t*DeltaT];
-				for k=1:BoundNe
-			temp=[temp;1000*sum(firings(tem,2)==k)/(t*DeltaT)];
+			for k=1:BoundNe
+				temp=[temp;1000*sum(firings(tem,2)==k)/(t*DeltaT)];
 			end
 		elseif t>TimeWindow
 			tem=find(firings(:,1)<=(t) & firings(:,1)>(t-TimeWindow)*DeltaT);
 			temp=[t*DeltaT];
-				for k=1:BoundNe
-			temp=[temp;1000*sum(firings(tem,2)==k)/(TimeWindow*DeltaT)];
+			for k=1:BoundNe
+				temp=[temp;1000*sum(firings(tem,2)==k)/(TimeWindow*DeltaT)];
 			end
 		end
 		
