@@ -10,7 +10,9 @@
 #define CoupledNe 2
 #define TotalNe 27
 #define TotalNeA1 28  /// 
+#define DoubTotalNe 54 /// 
 #define Vr 10
+#define Vth 130
 #define Tau1 10
 #define Tau2 5
 #define LenFiring 100000 // SimulationTime / DeltaT
@@ -19,14 +21,14 @@ const float DeltaT = 0.01; // ms
 const int NoiseStrengthBase = 0;
 int Velocity[2] = {1, 8}; // Length subject to change
 int VelocityLen = 2;
-const float StimulusStrength = 5.5;
+const float StimulusStrength[1] = {5.5};
 const int StimulusNeuron=1;
 const float StimulationOnset= 0; 
 const float StimulationOffset= 5000;
 const int Direction[3] = {0,4,-4};
 const float TimeWindow = 15 / DeltaT;
 const int FrameInterval=3;
-const float SpeedChecking=FrameInterval * 16 / DeltaT;
+const int SpeedChecking= FrameInterval * 16 / DeltaT;
  // BoundNe+ShiftNe+InhibitionNe+FMNe+BaseFrequencyNe+CoupledNe;
 
 // % Bump,Shift,Inh,Couple,Base,FM
@@ -78,8 +80,36 @@ int main()
         Potential[0] = 0, SynapticCurrent1[0] = 0, SynapticCurrent2[0] = 0;
         for(i = 0; i < TotalNe; i++) { Potential[i+1] = v[i]; SynapticCurrent1[i+1] = S1[i]; SynapticCurrent2[i+1] = S2[i]; }
         // line 96
-        float firings[LenFiring] = {0}, FirRate[BoundNeA1] = {0}, Position[3] = {0}; // ?
+        float firings[LenFiring][DoubTotalNe] = {0}, FirRate[LenFiring][BoundNeA1] = {0}, I[TotalNe] = {0};
+        int n = 1, t;
+        float Position[1000][3] = {0};
+        int PositionIdx = 0, x = 0;
+        for(t = 1; t < SimulationTime / DeltaT && x != 8; t++) 
+        {
+            if (t > StimulationOnset && t <= StimulationOffset) { ExternalI[StimulusNeuron-1] = StimulusStrength[0]; }
+            else { ExternalI[StimulusNeuron - 1] = 0; }
 
+            // lien 114
+            // if (t % SpeedChecking == 0) {
+            //     x = 0;
+            //     for(int m = 1; m < 9; m++) {
+            //         if(FirRate[t-1][m] > 950) { x = m; Position[PositionIdx][0] = t; Position[PositionIdx][1] = (t/16)*DeltaT; Position[PositionIdx][2] = x;  PositionIdx++; }
+            //     }
+            //     if(x == 8)
+            //         break;
+            // }
+
+            float fired1[TotalNe] = {0}, fired2[TotalNe] = {0}, fired3[TotalNe] = {0}, fired[TotalNe] = {0};
+            int fired1Num = 0, fired2Num = 0, fired3Num = 0;
+            for(i = 0, j = 0; i < BoundNe + ShiftNe + InhibitionNe; i++) { if(v[i] >= Vth) {fired1[j] = i; fired3[j] = i; j++; fired[j] = i;}} fired1Num = j;
+            for(i = BoundNe + ShiftNe + InhibitionNe, j = 0; i < TotalNe; i++) { if(v[i] >= Vth) {fired2[j] = i; fired3[j + fired1Num] = i; fired[j + fired1Num] = fired2[j]; j++;}} fired2Num = j; fired3Num = fired2Num + fired1Num;
+            for(i = 0; i < fired3Num; i++) { firings[t][i] = t * DeltaT + fired3[i]; firings[t][i+fired3Num] = fired3[i]; }
+            
+
+
+            
+
+        }
         
 
 
