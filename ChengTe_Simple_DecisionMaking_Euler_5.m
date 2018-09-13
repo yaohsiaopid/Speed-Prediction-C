@@ -171,12 +171,16 @@ for l=1:1
 		
 		fa1=funca(v,u,B,I,DeltaT);
 		fb1=funcb(A,B,v,u,DeltaT);
+
 		fa2=funca(v+DeltaT*0.5*fa1,u+DeltaT*0.5*fb1,B,I,DeltaT);
 		fb2=funcb(A,B,v+DeltaT*0.5*fa1,u+DeltaT*0.5*fb1,DeltaT);
+
 		fa3=funca(v+DeltaT*0.5*fa2,u+DeltaT*0.5*fb2,B,I,DeltaT);
 		fb3=funcb(A,B,v+DeltaT*0.5*fa2,u+DeltaT*0.5*fb2,DeltaT);
+
 		fa4=funca(v+DeltaT*fa3,u+DeltaT*fb3,B,I,DeltaT);
 		fb4=funcb(A,B,v+DeltaT*fa3,u+DeltaT*fb3,DeltaT);
+		
 		v= v + (DeltaT/6)*(fa1 + 2*fa2 + 2*fa3 + fa4);
 		u= u + (DeltaT/6)*(fb1 + 2*fb2 + 2*fb3 + fb4);
 		

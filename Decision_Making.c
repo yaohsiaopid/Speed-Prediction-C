@@ -26,14 +26,15 @@ const int StimulusNeuron=1;
 const float StimulationOnset= 0; 
 const float StimulationOffset= 5000;
 const int Direction[3] = {0,4,-4};
-const float TimeWindow = 15 / DeltaT;
+const float TimeWindow = 15.0 /DeltaT;
 const int FrameInterval=3;
-const int SpeedChecking= FrameInterval * 16 / DeltaT;
+const int SpeedChecking= FrameInterval * 16.0 /DeltaT;
  // BoundNe+ShiftNe+InhibitionNe+FMNe+BaseFrequencyNe+CoupledNe;
 
 // % Bump,Shift,Inh,Couple,Base,FM
 float a[6]={0.04,0.04,0.04,0.02,0.02,0.02}, b[6]={0.1,0.1,0.1,0.2,0.2,0.2}, c[6]={100-39.5,100-52,100-57,100-45,100-39.5,100-57}, d[6]={0.1,0.1,0.1,0.1,0.1,0.1},IB[6]={9.4,2,-2,16,10,-11};
-
+void funca(float fa[TotalNe], float v[TotalNe],float u[TotalNe],float b[TotalNe],float I[TotalNe],float dT, float dtt, float arg1[TotalNe], float arg2[TotalNe]);
+void funcb(float fb[TotalNe], float a[TotalNe],float b[TotalNe],float v[TotalNe],float u[TotalNe],float dT, float dtt, float arg1[TotalNe], float arg2[TotalNe]);
 int main()
 {
     const int ModulationCurrent=Direction[1];
@@ -144,13 +145,25 @@ int main()
             
             for(i = 0; i < TotalNe; i++) I[i] = ExternalI[i] + S1[i] + S2[i] + Inoise[i] + Ibias[i];
 
+            // Line 172
+            const float tmpf[TotalNe] = {0};
+            float fa1[TotalNe], fa2[TotalNe], fa3[TotalNe], fa4[TotalNe], v[TotalNe], u[TotalNe], fb1[TotalNe], fb2[TotalNe], fb3[TotalNe], fb4[TotalNe];
+            funca(fa1, v,u,B,I,DeltaT, 0, tmpf, tmpf);
+            funcb(fb1, A,B,v,u,DeltaT, 0, tmpf, tmpf);
             
+            funca(fa2, v, u, B, I, DeltaT, DeltaT*0.5, fa1, fb1);
+            funcb(fb2, A, B, v, u, DeltaT, DeltaT*0.5, fa1, fb1);
 
+            funca(fa3, v, u, B, I, DeltaT, DeltaT*0.5, fa2, fb2);
+            funcb(fb3, A, B, v, u, DeltaT, DeltaT*0.5, fa2, fb2);
 
-        
+            funca(fa4, v, u, B, I, DeltaT, DeltaT, fa3, fb3);
+            funcb(fb4, A, B, v, u, DeltaT, DeltaT, fa3, fb3);
 
-
-
+            for(i = 0; i < TotalNe; i++) {
+                v[i] += (DeltaT / 6.0) * (fa1[i] + 2 * fa2[i] + 2 * fa3[i] + fa4[i]);
+                u[i] += (DeltaT / 6.0) * (fb1[i] + 2 * fb2[i] + 2 * fb3[i] + fb4[i]);
+            }
             
 
         }
@@ -162,9 +175,22 @@ int main()
 
 }
 
-    // const float A[27] = { a[0],a[0],a[0],a[0],a[0],a[0],a[0],a[0],  a[1],a[1],a[1],a[1],a[1],a[1],a[1],a[1],a[1],a[1],a[1],a[1],a[1],a[1], a[2], a[3],a[3], a[4], a[5] };
-    // const float B[27] = { b[0],b[0],b[0],b[0],b[0],b[0],b[0],b[0],  b[1],b[1],b[1],b[1],b[1],b[1],b[1],b[1],b[1],b[1],b[1],b[1],b[1],b[1], b[2], b[3],b[3], b[4], b[5] };
-    // const float C[27] = { c[0],c[0],c[0],c[0],c[0],c[0],c[0],c[0],  c[1],c[1],c[1],c[1],c[1],c[1],c[1],c[1],c[1],c[1],c[1],c[1],c[1],c[1], c[2], c[3],c[3], c[4], c[5] };
-    // const float D[27] = { d[0],d[0],d[0],d[0],d[0],d[0],d[0],d[0],  d[1],d[1],d[1],d[1],d[1],d[1],d[1],d[1],d[1],d[1],d[1],d[1],d[1],d[1], d[2], d[3],d[3], d[4], d[5] };
-    // const float Ibias[27] = { IB[0],IB[0],IB[0],IB[0],IB[0],IB[0],IB[0],IB[0],  IB[1],IB[1],IB[1],IB[1],IB[1],IB[1],IB[1],IB[1],IB[1],IB[1],IB[1],IB[1],IB[1],IB[1], IB[2], IB[3],IB[3], IB[4], IB[5] };
-    
+void funca(float fa[TotalNe],float v[TotalNe],float u[TotalNe],float b[TotalNe],float I[TotalNe],float dT, float dtt, float arg1[TotalNe], float arg2[TotalNe]);
+{ 
+    float tmpv, tmpu;
+    for(int ii = 0; ii < TotalNe; ii++) {
+        tmpv = v[ii] + dtt * arg1[ii];
+        tmpu = u[ii] + dtt * arg2[ii];
+        fa[ii] = 0.04 * tmpv * tmpv - tmpv * 3 + 40 + 100 * b[ii] - tmpu + I[ii];
+    }
+}
+
+void void funcb(float fb[TotalNe], float a[TotalNe],float b[TotalNe],float v[TotalNe],float u[TotalNe],float dT, float dtt, float arg1[TotalNe], float arg2[TotalNe]);
+{
+    float tmpv, tmpu;
+    for(int ii = 0; ii < TotalNe; ii++){
+        tmpv = v[ii] + dtt * arg1[ii];
+        tmpu = u[ii] + dtt * arg2[ii];
+        fb[ii] = a[ii] * ( b[ii] * tmpv - tmpu);
+    } 
+}
