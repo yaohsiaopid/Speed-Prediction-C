@@ -1,0 +1,45 @@
+- > constant / not of importance
+? > not showing in ChangTe-Simple / ?? 
+* > variable
+
+- a
+- A
+- b
+- B
+- BaseFrequencyNe
+- BoundNe
+- c
+- C
+? CameraFps
+- CoupledNe
+- d
+- D
+? DeltaC
+- DeltaT
+- Direction
+* ExternalI[27]
+* fa1[27], fa2[27], fa3[27], fa4[27], fb1[27], fb2[27], fb3[27], fb4[27]
+- fig
+* fired, fired1, fired2, fired3
+- FMNe, foldername, g1, g2
+* I[27]
+- IB, Ibias, InhibitionNe, Inoise, l, LeftShiftNe
+? m, n
+- ModulationCurrent, N, NoiseStrengthBase
+* Potential sim/deltat(100000) by 28
+- RightShiftNe
+* S1 sim/deltat(100000) by 27
+* S2 sim/deltat(100000) by 27
+- ShiftNe, SimulationTime, Speed
+- StimulationOffset ??? 8000 shouldnt be 5000 ? 
+- StimulationOnset ??? 7500 shouldnt be 0 ?  
+- StimulusNeuron, StimuluStrength
+* SynapticCurrent1 sim/deltat(100000) by 27 = transpose([0;S1]);
+* SynapticCurrent2 sim/deltat(100000) by 27 = transpose([0;S2]);
+- t, Tau1, Tau2
+* temp[28] ??? ?
+* TotalCurrent sim/deltat(100000) by 28   ??? I[27] ???     
+- TotalNe
+* u sim/deltat(100000) by 27
+* v sim/deltat(100000) by 27 
+- Velocity, Vr, Vth

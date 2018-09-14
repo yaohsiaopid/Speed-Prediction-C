@@ -16,7 +16,7 @@
 #define Tau1 10
 #define Tau2 5
 #define LenFiring 100000 // SimulationTime / DeltaT
-const int SimulationTime = 1; // ms
+const int SimulationTime = 1000; // ms
 const float DeltaT = 0.01; // ms
 const int NoiseStrengthBase = 0;
 int Velocity[2] = {1, 8}; // Length subject to change
@@ -81,13 +81,14 @@ int main()
         Potential[0] = 0, SynapticCurrent1[0] = 0, SynapticCurrent2[0] = 0;
         for(i = 0; i < TotalNe; i++) { Potential[i+1] = v[i]; SynapticCurrent1[i+1] = S1[i]; SynapticCurrent2[i+1] = S2[i]; }
         // line 96
-        float firings[LenFiring][DoubTotalNe] = {0}, FirRate[LenFiring][BoundNeA1] = {0}, I[TotalNe] = {0};
+        float firings[DoubTotalNe] = {0}, FirRate[BoundNeA1] = {0}, I[TotalNe] = {0};
         int n = 1, t;
         float Position[1000][3] = {0};
         int PositionIdx = 0, x = 0;
-        for(t = 1; t < SimulationTime / DeltaT && x != 8; t++) 
+        // for(t = 1; t < SimulationTime / DeltaT; t++) 
+        for(t = 1; t < 10; t++) 
         {
-            printf("%d\n", t);
+            printf("%d,", t);
             if (t > StimulationOnset && t <= StimulationOffset) { ExternalI[StimulusNeuron-1] = StimulusStrength[0]; }
             else { ExternalI[StimulusNeuron - 1] = 0; }
 
@@ -107,9 +108,9 @@ int main()
             fired1Num = j;
             for(i = BoundNe + ShiftNe + InhibitionNe, j = 0; i < TotalNe; i++) { if(v[i] >= Vth) {fired2[j] = i; fired3[j + fired1Num] = i; fired[j + fired1Num] = i; v[fired[j+fired1Num]] = C[fired[j+fired1Num]]; u[fired[j+fired1Num]] += D[fired[j+fired1Num]]; j++;}} 
             fired2Num = j; fired3Num = fired2Num + fired1Num;
-            for(i = 0; i < fired3Num; i++) { firings[t][i] = t * DeltaT + fired3[i]; firings[t][i+fired3Num] = fired3[i]; }
+            for(i = 0; i < fired3Num; i++) { firings[i] = t * DeltaT + fired3[i]; firings[i+fired3Num] = fired3[i]; }
             
-            int tem[LenFiring] = {0};
+            int tem = {0};
             float temp[BoundNeA1] = {0};
             temp[0] = t * DeltaT;
             // line 138 ~ 150 , 152 153 ???
