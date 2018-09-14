@@ -27,6 +27,7 @@ const float StimulationOnset= 0;
 const float StimulationOffset= 5000;
 const int Direction[3] = {0,4,-4};
 const float TimeWindow = 15.0 / DeltaT;
+
 const int FrameInterval=3;
 const int SpeedChecking= FrameInterval * 16.0 /DeltaT;
  // BoundNe+ShiftNe+InhibitionNe+FMNe+BaseFrequencyNe+CoupledNe;
@@ -148,8 +149,8 @@ int main()
             for(i = 0; i < TotalNe; i++) I[i] = ExternalI[i] + S1[i] + S2[i] + Inoise[i] + Ibias[i];
 
             // Line 172
-            float tmpf[TotalNe] = {0};
-            float fa1[TotalNe], fa2[TotalNe], fa3[TotalNe], fa4[TotalNe], v[TotalNe], u[TotalNe], fb1[TotalNe], fb2[TotalNe], fb3[TotalNe], fb4[TotalNe];
+           float tmpf[TotalNe] = {0};
+           float fa1[TotalNe], fa2[TotalNe], fa3[TotalNe], fa4[TotalNe], v[TotalNe], u[TotalNe], fb1[TotalNe], fb2[TotalNe], fb3[TotalNe], fb4[TotalNe];
             funca(fa1, v,u,B,I,DeltaT, 0, tmpf, tmpf);
             funcb(fb1, A,B,v,u,DeltaT, 0, tmpf, tmpf);
             
