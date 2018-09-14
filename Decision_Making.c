@@ -16,7 +16,7 @@
 #define Tau1 10
 #define Tau2 5
 #define LenFiring 100000 // SimulationTime / DeltaT
-const int SimulationTime = 1000; // ms
+const int SimulationTime = 1; // ms
 const float DeltaT = 0.01; // ms
 const int NoiseStrengthBase = 0;
 int Velocity[2] = {1, 8}; // Length subject to change
@@ -26,7 +26,7 @@ const int StimulusNeuron=1;
 const float StimulationOnset= 0; 
 const float StimulationOffset= 5000;
 const int Direction[3] = {0,4,-4};
-const float TimeWindow = 15.0 /DeltaT;
+const float TimeWindow = 15.0 / DeltaT;
 const int FrameInterval=3;
 const int SpeedChecking= FrameInterval * 16.0 /DeltaT;
  // BoundNe+ShiftNe+InhibitionNe+FMNe+BaseFrequencyNe+CoupledNe;
@@ -70,7 +70,7 @@ int main()
     }
     fclose(fptr);
     VelocityLen = 1;
-    printf("::%f,", TimeWindow);
+
     for(int l = 0; l < VelocityLen; l++) 
     {
         // Line 84 - 92
@@ -87,6 +87,7 @@ int main()
         int PositionIdx = 0, x = 0;
         for(t = 1; t < SimulationTime / DeltaT && x != 8; t++) 
         {
+            printf("%d\n", t);
             if (t > StimulationOnset && t <= StimulationOffset) { ExternalI[StimulusNeuron-1] = StimulusStrength[0]; }
             else { ExternalI[StimulusNeuron - 1] = 0; }
 

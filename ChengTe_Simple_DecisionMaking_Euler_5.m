@@ -30,14 +30,6 @@ FMNe=1;
 BaseFrequencyNe=1;
 CoupledNe=2;
 TotalNe=BoundNe+ShiftNe+InhibitionNe+FMNe+BaseFrequencyNe+CoupledNe;
-%{
-a=[0.04,0.04,0.04,0.02,0.02,0.02];
-b=[0.1,0.1,0.1,0.2,0.2,0.2];
-c=[-39.5,-52,-57,-45,-39.5,-60];
-d=[0.1,0.1,0.1,0.1,0.1,0.1];
-IB=[9.5,2,-2,16,10,-11];
-c=c+100;
-%}
 
 % Bump,Shift,Inh,Couple,Base,FM
 a=[0.04,0.04,0.04,0.02,0.02,0.02];
@@ -48,15 +40,12 @@ IB=[9.4,2,-2,16,10,-11];
 c=c+100;
 
 A=[a(1)*ones(BoundNe,1);a(2)*ones(ShiftNe,1);a(3)*ones(InhibitionNe,1);a(4)*ones(CoupledNe,1);a(5)*ones(BaseFrequencyNe,1);a(6)*ones(FMNe,1)];
-% size(A)
 B=[b(1)*ones(BoundNe,1);b(2)*ones(ShiftNe,1);b(3)*ones(InhibitionNe,1);b(4)*ones(CoupledNe,1);b(5)*ones(BaseFrequencyNe,1);b(6)*ones(FMNe,1)];
-% size(B)
 C=[c(1)*ones(BoundNe,1);c(2)*ones(ShiftNe,1);c(3)*ones(InhibitionNe,1);c(4)*ones(CoupledNe,1);c(5)*ones(BaseFrequencyNe,1);c(6)*ones(FMNe,1)];
-% size(C)
 D=[d(1)*ones(BoundNe,1);d(2)*ones(ShiftNe,1);d(3)*ones(InhibitionNe,1);d(4)*ones(CoupledNe,1);d(5)*ones(BaseFrequencyNe,1);d(6)*ones(FMNe,1)];
 
 Ibias=[IB(1)*ones(BoundNe,1);IB(2)*ones(ShiftNe,1);IB(3)*ones(InhibitionNe,1);IB(4)*ones(CoupledNe,1);IB(5)*ones(BaseFrequencyNe,1);IB(6)*ones(FMNe,1)];
-Inoise=NoiseStrengthBase*normrnd(0,1,[TotalNe,1]);  % YH: func normal random number  gen 
+Inoise=0 * ones(TotalNe, 1);% NoiseStrengthBase*normrnd(0,1,[TotalNe,1]);  % YH: func normal random number  gen 
 % https://stackoverflow.com/questions/2325472/generate-random-numbers-following-a-normal-distribution-in-c-c
 ExternalI=0*ones(TotalNe,1);
 
@@ -69,12 +58,11 @@ Tau1=10;
 Tau2=5;
 
 Potential=transpose([0;v]);
-size(Potential)
 SynapticCurrent1=transpose([0;S1]);
 SynapticCurrent2=transpose([0;S2]);
 
-g1=transpose(full(spconvert(dlmread('Connection_Table_temp.txt'))));    % YH: 27 by 27 matrix /////sparsematrix  !
-g2=transpose(full(spconvert(dlmread('Connection_Table_temp_short.txt')))); % YH: 27 by 27 matrix
+g1=transpose(full(spconvert(dlmread('Connection_Table_temp.txt'))));   
+g2=transpose(full(spconvert(dlmread('Connection_Table_temp_short.txt')))); 
 %Information=dlmread('bmvx2vy2.csv');
 %matrix=size(Information);
 %Column=matrix(1);
@@ -82,11 +70,11 @@ for l=1:1
 	disp('velocity for loop')
 	%Speed=Velocity(l);
 	ExternalI=0*ones(TotalNe,1);
-	v=Vr.*ones(TotalNe,1); % YH:const ? 
+	v=Vr.*ones(TotalNe,1); 
 	v(TotalNe-1)=70;
-	u=10*ones(TotalNe,1);  % YH:var
-	S1=0*ones(TotalNe,1);  % YH:var
-	S2=0*ones(TotalNe,1);  % YH:var
+	u=10*ones(TotalNe,1);  
+	S1=0*ones(TotalNe,1);  
+	S2=0*ones(TotalNe,1);  
 	Tau1=10;
 	Tau2=5;
 
@@ -102,9 +90,7 @@ for l=1:1
 	I=0*ones(TotalNe,1);
 	n=1;
 	for t=1:SimulationTime/DeltaT        % simulation time ms
-		% disp('1~simulation loop');
-		% disp(Velocity)
-
+		
 		%Inoise=NoiseStrengthBase*normrnd(0,1,[TotalNe,1]);
 		if t>StimulationOnset && t<=StimulationOffset
 			ExternalI(StimulusNeuron)=StimuluStrength(1);
