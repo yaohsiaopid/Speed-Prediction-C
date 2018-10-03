@@ -102,7 +102,7 @@ for l=1:1
 			x=0;
 			for m=1:8
 				if FirRate(t,m+1)>950
-					x=m
+					x=m;
 					temp=[t,(t/16)*DeltaT,x];
 					Position=cat(1,Position,temp);
 				end;

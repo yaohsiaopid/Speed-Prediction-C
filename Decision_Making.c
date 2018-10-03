@@ -57,18 +57,33 @@ int main()
     for(i = 0; i < TotalNe; i++) { Potential[i+1] = v[i]; SynapticCurrent1[i+1] = S1[i]; SynapticCurrent2[i+1] = S2[i]; }
     
     // line 76 g1 g2
-    float g1[TotalNe][TotalNe], g2[TotalNe][TotalNe]; // Assume dimension same as TotalNe
+    float g1[TotalNe][TotalNe] = {0} , g2[TotalNe][TotalNe] = {0}; // Assume dimension same as TotalNe
     FILE *fptr; 
     fptr = fopen("Connection_Table_temp.txt", "r");
     while(fscanf(fptr, "%d %d %f", &i, &j, &tmpVal) == 3) {
-        g1[j][i] = tmpVal; 
+        // printf("tmp %f\n", tmpVal);
+        g1[j-1][i-1] = tmpVal; 
     }
+    // for(i = 0; i < TotalNe; i++) {
+    //     for(j = 0; j < TotalNe; j++) {
+    //         printf("%5.5f   ", g1[i][j] );
+    //     }
+    //     printf("\n");
+    // }
+    // printf("------g1-----\n");
     fclose(fptr);
 
     fptr = fopen("Connection_Table_temp_short.txt", "r");
     while(fscanf(fptr, "%d %d %f", &i, &j, &tmpVal) == 3) {
-        g2[j][i] = tmpVal; 
+        g2[j-1][i-1] = tmpVal; 
     }
+    // for(i = 0; i < TotalNe; i++) {
+    //     for(j = 0; j < TotalNe; j++) {
+    //         printf("%5.5f   ", g2[i][j] );
+    //     }
+    //     printf("\n");
+    // }
+    // printf("------g2-----\n");
     fclose(fptr);
     VelocityLen = 1;
 
@@ -86,10 +101,10 @@ int main()
         int n = 1, t;
         float Position[1000][3] = {0};
         int PositionIdx = 0, x = 0;
-        // for(t = 1; t < SimulationTime / DeltaT; t++) 
-        for(t = 1; t < 10; t++) 
+        for(t = 1; t < SimulationTime / DeltaT; t++) 
+        // for(t = 1; t < 10; t++) 
         {
-            printf("%d,", t);
+            // printf("%d,", t);
             if (t > StimulationOnset && t <= StimulationOffset) { ExternalI[StimulusNeuron-1] = StimulusStrength[0]; }
             else { ExternalI[StimulusNeuron - 1] = 0; }
 
@@ -124,7 +139,7 @@ int main()
 
             // }
 
-            // line 158 159
+            // line 145 144
             for(i = 0; i < TotalNe; i++) {
                 int tmpSum = 0;
                 for(j = 0; j < fired1Num; j++) tmpSum += g1[i][fired1[j]];
@@ -133,8 +148,9 @@ int main()
                 tmpSum = 0;
                 for(j = 0; j < fired2Num; j++) tmpSum += g2[i][fired2[j]];
                 S2[i] = S2[i] + tmpSum - (S2[i]/Tau2)*DeltaT;
+                
             }
-
+            
             //line 160
             if(ModulationCurrent > 0) {
                 for(i = BoundNe; i < ShiftNe/2+BoundNe; i++) ExternalI[i] = ModulationCurrent;
@@ -168,6 +184,33 @@ int main()
                 u[i] += (DeltaT / 6.0) * (fb1[i] + 2 * fb2[i] + 2 * fb3[i] + fb4[i]);
             }
             
+            printf("A\n");
+            for(i = 0 ; i < TotalNe; i++) {
+                printf("%2.2f; ", A[i]);
+            }
+            printf("\n");
+            printf("B\n");
+            for(i = 0 ; i < TotalNe; i++) {
+                printf("%2.2f; ", B[i]);
+            }
+            printf("\n");
+            printf("C\n");
+            for(i = 0 ; i < TotalNe; i++) {
+                printf("%2.2f; ", C[i]);
+            }
+            printf("\n");
+            printf("BoundNe: %d\n", BoundNe);
+            printf("D\n");
+            for(i = 0 ; i < TotalNe; i++) {
+                printf("%2.2f; ", D[i]);
+            }
+            printf("\n");
+            
+            printf("---------------------\n\n");
+            // for(i = 0; i < TotalNe; i++) printf("%1.5f, ", v[i]);
+            // printf(" || ");
+            // for(i = 0; i < TotalNe; i++) printf("%1.5f, ", u[i]);
+            // printf("\n");
 
         }
         
