@@ -60,7 +60,11 @@ int main()
     // line 76 g1 g2
     double g1[TotalNe][TotalNe] = {0} , g2[TotalNe][TotalNe] = {0}; // Assume dimension same as TotalNe
     FILE *fptr; 
+<<<<<<< HEAD:src_c/Decision_Making.c
     fptr = fopen("../Connection_Table_temp.txt", "r");
+=======
+    fptr = fopen("Connection_Table_temp.txt", "r");
+>>>>>>> 69e31b155a183946695a0171f099b860e4c6564c:src_c/Decision_Making.c
     while(fscanf(fptr, "%d %d %lf", &i, &j, &tmpVal) == 3) {
         // printf("tmp %f\n", tmpVal);
         g1[j-1][i-1] = tmpVal; 
@@ -74,7 +78,11 @@ int main()
     // printf("------g1-----\n");
     fclose(fptr);
 
+<<<<<<< HEAD:src_c/Decision_Making.c
     fptr = fopen("../Connection_Table_temp_short.txt", "r");
+=======
+    fptr = fopen("Connection_Table_temp_short.txt", "r");
+>>>>>>> 69e31b155a183946695a0171f099b860e4c6564c:src_c/Decision_Making.c
     while(fscanf(fptr, "%d %d %lf", &i, &j, &tmpVal) == 3) {
         g2[j-1][i-1] = tmpVal; 
     }
@@ -101,7 +109,11 @@ int main()
     double Position[1000][3] = {0};
     int PositionIdx = 0, x = 0;
     // for(t = 1; t < SimulationTime / DeltaT; t++) 
+<<<<<<< HEAD:src_c/Decision_Making.c
     for(t = 1; t < 200; t++) 
+=======
+    for(t = 1; t < 14; t++) 
+>>>>>>> 69e31b155a183946695a0171f099b860e4c6564c:src_c/Decision_Making.c
     {
         // printf("%d,", t);
         if (t > StimulationOnset && t <= StimulationOffset) { ExternalI[StimulusNeuron-1] = StimulusStrength[0]; }
