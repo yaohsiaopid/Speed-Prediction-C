@@ -26,24 +26,25 @@ const int StimulusNeuron=1;
 const float StimulationOnset= 0; 
 const float StimulationOffset= 5000;
 const int Direction[3] = {0,4,-4};
-const float TimeWindow = 15.0 / DeltaT;
+// const float TimeWindow = 15.0 / DeltaT;
 
 const int FrameInterval=3;
-const int SpeedChecking= FrameInterval * 16.0 /DeltaT;
- // BoundNe+ShiftNe+InhibitionNe+FMNe+BaseFrequencyNe+CoupledNe;
+// const int SpeedChecking= FrameInterval * 16.0 /DeltaT;
+// BoundNe+ShiftNe+InhibitionNe+FMNe+BaseFrequencyNe+CoupledNe;
 
 // % Bump,Shift,Inh,Couple,Base,FM
 float a[6]={0.04,0.04,0.04,0.02,0.02,0.02}, b[6]={0.1,0.1,0.1,0.2,0.2,0.2}, c[6]={100-39.5,100-52,100-57,100-45,100-39.5,100-57}, d[6]={0.1,0.1,0.1,0.1,0.1,0.1},IB[6]={9.4,2,-2,16,10,-11};
-void funca(float fa[TotalNe], float v[TotalNe],float u[TotalNe],float b[TotalNe],float I[TotalNe],float dT, float dtt, float arg1[TotalNe], float arg2[TotalNe]);
-void funcb(float fb[TotalNe], float a[TotalNe],float b[TotalNe],float v[TotalNe],float u[TotalNe],float dT, float dtt, float arg1[TotalNe], float arg2[TotalNe]);
+void funca(float fa[TotalNe], const float v[TotalNe],const float u[TotalNe],const float b[TotalNe],const float I[TotalNe],const float dT, const float dtt, const float arg1[TotalNe], const float arg2[TotalNe]);
+void funcb(float fb[TotalNe], const float a[TotalNe],const float b[TotalNe],const float v[TotalNe],const float u[TotalNe],const float dT, const float dtt, const float arg1[TotalNe], const float arg2[TotalNe]);
 int main()
 {
     const int ModulationCurrent=Direction[1];
     int Speed=Velocity[1];
+    
     int i, j, k;
     float tmpVal;
     // line 50 init A,B,C,D
-    float A[TotalNe], B[TotalNe], C[TotalNe], D[TotalNe], Ibias[TotalNe], ExternalI[TotalNe] = {0}, Inoise[TotalNe], v[TotalNe], u[TotalNe], S1[TotalNe] = {0}, S2[TotalNe] = {0}, Potential[TotalNeA1] = {0}, SynapticCurrent1[TotalNeA1] = {0}, SynapticCurrent2[TotalNeA1] = {0};
+    float A[TotalNe], B[TotalNe], C[TotalNe], D[TotalNe], Ibias[TotalNe], ExternalI[TotalNe] = {0}, Inoise[TotalNe] = {0}, v[TotalNe], u[TotalNe], S1[TotalNe] = {0}, S2[TotalNe] = {0}, Potential[TotalNeA1] = {0}, SynapticCurrent1[TotalNeA1] = {0}, SynapticCurrent2[TotalNeA1] = {0};
     for(i = 0; i < BoundNe; i++) {  A[i] = a[0];    B[i] = b[0];    C[i] = c[0];    D[i] = d[0];    Ibias[i] = IB[0];  }
     for(i = BoundNe; i < ShiftNe + BoundNe; i++) {  A[i] = a[1];    B[i] = b[1];    C[i] = c[1];    D[i] = d[1];    Ibias[i] = IB[1];  }
     for(i = BoundNe + ShiftNe; i < ShiftNe + BoundNe + InhibitionNe; i++) {  A[i] = a[2];    B[i] = b[2];    C[i] = c[2];    D[i] = d[2];    Ibias[i] = IB[2];  }
@@ -85,13 +86,11 @@ int main()
     // }
     // printf("------g2-----\n");
     fclose(fptr);
-    VelocityLen = 1;
-
-    for(int l = 0; l < VelocityLen; l++) 
-    {
+    // VelocityLen = 1;
+    int l = 1;
+    
         // Line 84 - 92
         Speed = Velocity[l];
-        float ExternalI[TotalNe] = {0};
         for(i = 0; i < TotalNe; i++) { v[i] = Vr; u[i] = 10.0; S1[i] = 0; S2[i] = 0;}
         v[TotalNe - 2] = 70;
         Potential[0] = 0, SynapticCurrent1[0] = 0, SynapticCurrent2[0] = 0;
@@ -101,8 +100,8 @@ int main()
         int n = 1, t;
         float Position[1000][3] = {0};
         int PositionIdx = 0, x = 0;
-        for(t = 1; t < SimulationTime / DeltaT; t++) 
-        // for(t = 1; t < 10; t++) 
+        // for(t = 1; t < SimulationTime / DeltaT; t++) 
+        for(t = 1; t < 2; t++) 
         {
             // printf("%d,", t);
             if (t > StimulationOnset && t <= StimulationOffset) { ExternalI[StimulusNeuron-1] = StimulusStrength[0]; }
@@ -153,20 +152,29 @@ int main()
             
             //line 160
             if(ModulationCurrent > 0) {
+                // 4 
                 for(i = BoundNe; i < ShiftNe/2+BoundNe; i++) ExternalI[i] = ModulationCurrent;
                 for(i = ShiftNe+BoundNe+InhibitionNe; i < ShiftNe+BoundNe+1+CoupledNe; i++) ExternalI[i] = Speed;
+                printf("s%d\n", Speed);
             } else if(ModulationCurrent < 0) {
                 for(i = ShiftNe; i < ShiftNe+BoundNe; i++) ExternalI[i] = -ModulationCurrent;
                 for(i = ShiftNe+BoundNe+InhibitionNe; i < ShiftNe+BoundNe+1+CoupledNe; i++) ExternalI[i] = Speed;
             } else {
                 for(i = BoundNe; i < ShiftNe+BoundNe; i++) ExternalI[i] = 0;
             }
-            
+                                       
             for(i = 0; i < TotalNe; i++) I[i] = ExternalI[i] + S1[i] + S2[i] + Inoise[i] + Ibias[i];
 
             // Line 172
            float tmpf[TotalNe] = {0};
-           float fa1[TotalNe], fa2[TotalNe], fa3[TotalNe], fa4[TotalNe], v[TotalNe], u[TotalNe], fb1[TotalNe], fb2[TotalNe], fb3[TotalNe], fb4[TotalNe];
+           float fa1[TotalNe], fa2[TotalNe], fa3[TotalNe], fa4[TotalNe], fb1[TotalNe], fb2[TotalNe], fb3[TotalNe], fb4[TotalNe];
+           printf("before u\n");
+            for(i = 0; i < TotalNe; i++) { printf("%f; ", u[i]); }
+            printf("\n");
+            printf("before v\n");
+            for(i = 0; i < TotalNe; i++) { printf("%f; ", v[i]); }
+            printf("\n");
+
             funca(fa1, v,u,B,I,DeltaT, 0, tmpf, tmpf);
             funcb(fb1, A,B,v,u,DeltaT, 0, tmpf, tmpf);
             
@@ -205,7 +213,61 @@ int main()
                 printf("%2.2f; ", D[i]);
             }
             printf("\n");
+            printf("***ExternalI*****\n");
+            for(i = 0; i < TotalNe; i++) { printf("%1.1f; ", ExternalI[i]); }
+            printf("\n");
+            printf("I\n");
+            for(i = 0; i < TotalNe; i++) { printf("%f; ", I[i]); }
+            printf("\n");
+            printf("Ibias\n");
+            for(i = 0; i < TotalNe; i++) { printf("%f; ", Ibias[i]); }
+            printf("\n");
+
             
+            printf("fa1\n");
+            for(i = 0; i < TotalNe; i++) { printf("%f; ", fa1[i]); }
+            printf("\n");
+            printf("fa2\n");
+            for(i = 0; i < TotalNe; i++) { printf("%f; ", fa2[i]); }
+            printf("\n");
+            printf("fa3\n");
+            for(i = 0; i < TotalNe; i++) { printf("%f; ", fa3[i]); }
+            printf("\n");
+            printf("fa4\n");
+            for(i = 0; i < TotalNe; i++) { printf("%f; ", fa4[i]); }
+            printf("\n");
+
+            printf("fb1\n");
+            for(i = 0; i < TotalNe; i++) { printf("%f; ", fb1[i]); }
+            printf("\n");
+            printf("fb2\n");
+            for(i = 0; i < TotalNe; i++) { printf("%f; ", fb2[i]); }
+            printf("\n");
+            printf("fb3\n");
+            for(i = 0; i < TotalNe; i++) { printf("%f; ", fb3[i]); }
+            printf("\n");
+            printf("fb4\n");
+            for(i = 0; i < TotalNe; i++) { printf("%f; ", fb4[i]); }
+            printf("\n");
+
+            printf("S1\n");
+            for(i = 0; i < TotalNe; i++) { printf("%f; ", S1[i]); }
+            printf("\n");
+            printf("S2\n");
+            for(i = 0; i < TotalNe; i++) { printf("%f; ", S2[i]); }
+            printf("\n");
+
+            
+            printf("u\n");
+            for(i = 0; i < TotalNe; i++) { printf("%f; ", u[i]); }
+            printf("\n");
+            printf("v\n");
+            for(i = 0; i < TotalNe; i++) { printf("%f; ", v[i]); }
+            printf("\n");
+            
+
+
+
             printf("---------------------\n\n");
             // for(i = 0; i < TotalNe; i++) printf("%1.5f, ", v[i]);
             // printf(" || ");
@@ -216,12 +278,12 @@ int main()
         
 
 
-    }
+    // }
 
 
 }
 
-void funca(float fa[TotalNe],float v[TotalNe],float u[TotalNe],float b[TotalNe],float I[TotalNe],float dT, float dtt, float arg1[TotalNe], float arg2[TotalNe])
+void funca(float fa[TotalNe], const float v[TotalNe],const float u[TotalNe],const float b[TotalNe],const float I[TotalNe],const float dT, const float dtt, const float arg1[TotalNe], const float arg2[TotalNe])
 { 
     float tmpv, tmpu;
     for(int ii = 0; ii < TotalNe; ii++) {
@@ -231,7 +293,7 @@ void funca(float fa[TotalNe],float v[TotalNe],float u[TotalNe],float b[TotalNe],
     }
 }
 
-void funcb(float fb[TotalNe], float a[TotalNe],float b[TotalNe],float v[TotalNe],float u[TotalNe],float dT, float dtt, float arg1[TotalNe], float arg2[TotalNe])
+void funcb(float fb[TotalNe], const float a[TotalNe],const float b[TotalNe],const float v[TotalNe],const float u[TotalNe],const float dT, const float dtt, const float arg1[TotalNe], const float arg2[TotalNe])
 {
     float tmpv, tmpu;
     for(int ii = 0; ii < TotalNe; ii++){
