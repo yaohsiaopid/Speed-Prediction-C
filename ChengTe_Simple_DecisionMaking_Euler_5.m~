@@ -155,16 +155,12 @@ for l=1:1
 		
 		I=ExternalI+S1+S2+Inoise+Ibias;
 		
-        fptr = fopen("./matlabout/t" + t + ".txt", 'w');
-        fprintf(fptr, "ExternalI = ");
-        fprintf(fptr, '%3.4f ', ExternalI);
-        fprintf(fptr, '\n');
-  
+        fptr = fopen("./matlabout/t + ".txt", 'w');
         fprintf(fptr, "before u = ");
-        fprintf(fptr, '%3.4f ', u);
+        fprintf(fptr, '%3.6f ', u);
         fprintf(fptr, '\n');
         fprintf(fptr, "before v = ");
-        fprintf(fptr, '%3.4f ', v);
+        fprintf(fptr, '%3.6f ', v);
         fprintf(fptr, '\n');
         
 		fa1=funca(v,u,B,I,DeltaT);
@@ -203,60 +199,63 @@ for l=1:1
            
         
         fprintf(fptr, "Ibias = ");
-        fprintf(fptr, '%3.4f ', Ibias);
+        fprintf(fptr, '%3.6f ', Ibias);
         fprintf(fptr, '\n');
         
         fprintf(fptr, "fa1 = ");
-        fprintf(fptr, '%3.4f ', fa1);
+        fprintf(fptr, '%3.6f ', fa1);
         fprintf(fptr, '\n');
         
         fprintf(fptr, "fa2 = ");
-        fprintf(fptr, '%3.4f ', fa2);
+        fprintf(fptr, '%3.6f ', fa2);
         fprintf(fptr, '\n');
         
         fprintf(fptr, "fa3 = ");
-        fprintf(fptr, '%3.4f ', fa3);
+        fprintf(fptr, '%3.6f ', fa3);
         fprintf(fptr, '\n');
         
         fprintf(fptr, "fa4 = ");
-        fprintf(fptr, '%3.4f ', fa4);
+        fprintf(fptr, '%3.6f ', fa4);
         fprintf(fptr, '\n');
         
         fprintf(fptr, "fb1 = ");
-        fprintf(fptr, '%3.4f ', fb1);
+        fprintf(fptr, '%3.6f ', fb1);
         fprintf(fptr, '\n');
         
         fprintf(fptr, "fb2 = ");
-        fprintf(fptr, '%3.4f ', fb2);
+        fprintf(fptr, '%3.6f ', fb2);
         fprintf(fptr, '\n');
         
         fprintf(fptr, "fb3 = ");
-        fprintf(fptr, '%3.4f ', fb3);
+        fprintf(fptr, '%3.6f ', fb3);
         fprintf(fptr, '\n');
         
         fprintf(fptr, "fb4 = ");
-        fprintf(fptr, '%3.4f ', fb4);
+        fprintf(fptr, '%3.6f ', fb4);
         fprintf(fptr, '\n');
         
         fprintf(fptr, "I = ");
-        fprintf(fptr, '%3.4f ', I);
+        fprintf(fptr, '%3.6f ', I);
         fprintf(fptr, '\n');
-       
+        
+        fprintf(fptr, "fa1 = ");
+        fprintf(fptr, '%3.6f ', fa1);
+        fprintf(fptr, '\n');
         
         fprintf(fptr, "S1 = ");
-        fprintf(fptr, '%3.4f ', S1);
+        fprintf(fptr, '%3.6f ', S1);
         fprintf(fptr, '\n');
         
         fprintf(fptr, "S2 = ");
-        fprintf(fptr, '%3.4f ', S2);
+        fprintf(fptr, '%3.6f ', S2);
         fprintf(fptr, '\n');
         
         fprintf(fptr, "u = ");
-        fprintf(fptr, '%3.4f ', u);
+        fprintf(fptr, '%3.6f ', u);
         fprintf(fptr, '\n');
         
         fprintf(fptr, "v = ");
-        fprintf(fptr, '%3.4f ', v);
+        fprintf(fptr, '%3.6f ', v);
         fprintf(fptr, '\n');
           
         fclose(fptr);

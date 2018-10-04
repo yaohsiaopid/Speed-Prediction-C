@@ -17,7 +17,7 @@
 #define Tau2 5
 #define LenFiring 100000 // SimulationTime / DeltaT
 const int SimulationTime = 1000; // ms
-const float DeltaT = 0.01; // ms
+const float DeltaT = 0.0100000000000; // ms
 const int NoiseStrengthBase = 0;
 int Velocity[2] = {1, 8}; // Length subject to change
 int VelocityLen = 2;
@@ -88,197 +88,167 @@ int main()
     fclose(fptr);
     // VelocityLen = 1;
     int l = 1;
-    
-        // Line 84 - 92
-        Speed = Velocity[l];
-        for(i = 0; i < TotalNe; i++) { v[i] = Vr; u[i] = 10.0; S1[i] = 0; S2[i] = 0;}
-        v[TotalNe - 2] = 70;
-        Potential[0] = 0, SynapticCurrent1[0] = 0, SynapticCurrent2[0] = 0;
-        for(i = 0; i < TotalNe; i++) { Potential[i+1] = v[i]; SynapticCurrent1[i+1] = S1[i]; SynapticCurrent2[i+1] = S2[i]; }
-        // line 96
-        float firings[DoubTotalNe] = {0}, FirRate[BoundNeA1] = {0}, I[TotalNe] = {0};
-        int n = 1, t;
-        float Position[1000][3] = {0};
-        int PositionIdx = 0, x = 0;
-        // for(t = 1; t < SimulationTime / DeltaT; t++) 
-        for(t = 1; t < 2; t++) 
-        {
-            // printf("%d,", t);
-            if (t > StimulationOnset && t <= StimulationOffset) { ExternalI[StimulusNeuron-1] = StimulusStrength[0]; }
-            else { ExternalI[StimulusNeuron - 1] = 0; }
 
-            // lien 114
-            // if (t % SpeedChecking == 0) {
-            //     x = 0;
-            //     for(int m = 1; m < 9; m++) {
-            //         if(FirRate[t-1][m] > 950) { x = m; Position[PositionIdx][0] = t; Position[PositionIdx][1] = (t/16)*DeltaT; Position[PositionIdx][2] = x;  PositionIdx++; }
-            //     }
-            //     if(x == 8)
-            //         break;
-            // }
+    // Line 84 - 92
+    Speed = Velocity[l];
+    for(i = 0; i < TotalNe; i++) { v[i] = Vr; u[i] = 10.0; S1[i] = 0; S2[i] = 0;}
+    v[TotalNe - 2] = 70;
+    Potential[0] = 0, SynapticCurrent1[0] = 0, SynapticCurrent2[0] = 0;
+    for(i = 0; i < TotalNe; i++) { Potential[i+1] = v[i]; SynapticCurrent1[i+1] = S1[i]; SynapticCurrent2[i+1] = S2[i]; }
+    // line 96
+    float firings[DoubTotalNe] = {0}, FirRate[BoundNeA1] = {0}, I[TotalNe] = {0};
+    int n = 1, t;
+    float Position[1000][3] = {0};
+    int PositionIdx = 0, x = 0;
+    // for(t = 1; t < SimulationTime / DeltaT; t++) 
+    for(t = 1; t < 2; t++) 
+    {
+        // printf("%d,", t);
+        if (t > StimulationOnset && t <= StimulationOffset) { ExternalI[StimulusNeuron-1] = StimulusStrength[0]; }
+        else { ExternalI[StimulusNeuron - 1] = 0; }
 
-            int fired1[TotalNe] = {0}, fired2[TotalNe] = {0}, fired3[TotalNe] = {0}, fired[TotalNe] = {0};
-            int fired1Num = 0, fired2Num = 0, fired3Num = 0;
-            for(i = 0, j = 0; i < BoundNe + ShiftNe + InhibitionNe; i++) { if(v[i] >= Vth) {fired1[j] = i; fired3[j] = i; fired[j] = i; v[fired[j]] = C[fired[j]];  u[fired[j]] += D[fired[j]]; j++;}} 
-            fired1Num = j;
-            for(i = BoundNe + ShiftNe + InhibitionNe, j = 0; i < TotalNe; i++) { if(v[i] >= Vth) {fired2[j] = i; fired3[j + fired1Num] = i; fired[j + fired1Num] = i; v[fired[j+fired1Num]] = C[fired[j+fired1Num]]; u[fired[j+fired1Num]] += D[fired[j+fired1Num]]; j++;}} 
-            fired2Num = j; fired3Num = fired2Num + fired1Num;
-            for(i = 0; i < fired3Num; i++) { firings[i] = t * DeltaT + fired3[i]; firings[i+fired3Num] = fired3[i]; }
+        // lien 114
+        // if (t % SpeedChecking == 0) {
+        //     x = 0;
+        //     for(int m = 1; m < 9; m++) {
+        //         if(FirRate[t-1][m] > 950) { x = m; Position[PositionIdx][0] = t; Position[PositionIdx][1] = (t/16)*DeltaT; Position[PositionIdx][2] = x;  PositionIdx++; }
+        //     }
+        //     if(x == 8)
+        //         break;
+        // }
+
+        int fired1[TotalNe] = {0}, fired2[TotalNe] = {0}, fired3[TotalNe] = {0}, fired[TotalNe] = {0};
+        int fired1Num = 0, fired2Num = 0, fired3Num = 0;
+        for(i = 0, j = 0; i < BoundNe + ShiftNe + InhibitionNe; i++) { if(v[i] >= Vth) {fired1[j] = i; fired3[j] = i; fired[j] = i; v[fired[j]] = C[fired[j]];  u[fired[j]] += D[fired[j]]; j++;}} 
+        fired1Num = j;
+        for(i = BoundNe + ShiftNe + InhibitionNe, j = 0; i < TotalNe; i++) { if(v[i] >= Vth) {fired2[j] = i; fired3[j + fired1Num] = i; fired[j + fired1Num] = i; v[fired[j+fired1Num]] = C[fired[j+fired1Num]]; u[fired[j+fired1Num]] += D[fired[j+fired1Num]]; j++;}} 
+        fired2Num = j; fired3Num = fired2Num + fired1Num;
+        for(i = 0; i < fired3Num; i++) { firings[i] = t * DeltaT + fired3[i]; firings[i+fired3Num] = fired3[i]; }
+        
+        int tem = {0};
+        float temp[BoundNeA1] = {0};
+        temp[0] = t * DeltaT;
+        // line 138 ~ 150 , 152 153 ???
+        // if (t <= TimeWindow) {
+        //     // line 139
+        //     for(i = 0, j = 0; i <= t; i++) { if(firings[i][0] <= t) { tem[j] = i; j++; }
+        //     for(i = 0; i < BoundNe; i++) temp[i+1] = 1000 * 
+
+        // } else {
+
+        // }
+
+        // line 145 144
+        for(i = 0; i < TotalNe; i++) {
+            int tmpSum = 0;
+            for(j = 0; j < fired1Num; j++) tmpSum += g1[i][fired1[j]];
+            S1[i] = S1[i] + tmpSum - (S1[i]/Tau1)*DeltaT;
             
-            int tem = {0};
-            float temp[BoundNeA1] = {0};
-            temp[0] = t * DeltaT;
-            // line 138 ~ 150 , 152 153 ???
-            // if (t <= TimeWindow) {
-            //     // line 139
-            //     for(i = 0, j = 0; i <= t; i++) { if(firings[i][0] <= t) { tem[j] = i; j++; }
-            //     for(i = 0; i < BoundNe; i++) temp[i+1] = 1000 * 
-
-            // } else {
-
-            // }
-
-            // line 145 144
-            for(i = 0; i < TotalNe; i++) {
-                int tmpSum = 0;
-                for(j = 0; j < fired1Num; j++) tmpSum += g1[i][fired1[j]];
-                S1[i] = S1[i] + tmpSum - (S1[i]/Tau1)*DeltaT;
-                
-                tmpSum = 0;
-                for(j = 0; j < fired2Num; j++) tmpSum += g2[i][fired2[j]];
-                S2[i] = S2[i] + tmpSum - (S2[i]/Tau2)*DeltaT;
-                
-            }
+            tmpSum = 0;
+            for(j = 0; j < fired2Num; j++) tmpSum += g2[i][fired2[j]];
+            S2[i] = S2[i] + tmpSum - (S2[i]/Tau2)*DeltaT;
             
-            //line 160
-            if(ModulationCurrent > 0) {
-                // 4 
-                for(i = BoundNe; i < ShiftNe/2+BoundNe; i++) ExternalI[i] = ModulationCurrent;
-                for(i = ShiftNe+BoundNe+InhibitionNe; i < ShiftNe+BoundNe+1+CoupledNe; i++) ExternalI[i] = Speed;
-                printf("s%d\n", Speed);
-            } else if(ModulationCurrent < 0) {
-                for(i = ShiftNe; i < ShiftNe+BoundNe; i++) ExternalI[i] = -ModulationCurrent;
-                for(i = ShiftNe+BoundNe+InhibitionNe; i < ShiftNe+BoundNe+1+CoupledNe; i++) ExternalI[i] = Speed;
-            } else {
-                for(i = BoundNe; i < ShiftNe+BoundNe; i++) ExternalI[i] = 0;
-            }
-                                       
-            for(i = 0; i < TotalNe; i++) I[i] = ExternalI[i] + S1[i] + S2[i] + Inoise[i] + Ibias[i];
-
-            // Line 172
-           float tmpf[TotalNe] = {0};
-           float fa1[TotalNe], fa2[TotalNe], fa3[TotalNe], fa4[TotalNe], fb1[TotalNe], fb2[TotalNe], fb3[TotalNe], fb4[TotalNe];
-           printf("before u\n");
-            for(i = 0; i < TotalNe; i++) { printf("%f; ", u[i]); }
-            printf("\n");
-            printf("before v\n");
-            for(i = 0; i < TotalNe; i++) { printf("%f; ", v[i]); }
-            printf("\n");
-
-            funca(fa1, v,u,B,I,DeltaT, 0, tmpf, tmpf);
-            funcb(fb1, A,B,v,u,DeltaT, 0, tmpf, tmpf);
-            
-            funca(fa2, v, u, B, I, DeltaT, DeltaT*0.5, fa1, fb1);
-            funcb(fb2, A, B, v, u, DeltaT, DeltaT*0.5, fa1, fb1);
-
-            funca(fa3, v, u, B, I, DeltaT, DeltaT*0.5, fa2, fb2);
-            funcb(fb3, A, B, v, u, DeltaT, DeltaT*0.5, fa2, fb2);
-
-            funca(fa4, v, u, B, I, DeltaT, DeltaT, fa3, fb3);
-            funcb(fb4, A, B, v, u, DeltaT, DeltaT, fa3, fb3);
-
-            for(i = 0; i < TotalNe; i++) {
-                v[i] += (DeltaT / 6.0) * (fa1[i] + 2 * fa2[i] + 2 * fa3[i] + fa4[i]);
-                u[i] += (DeltaT / 6.0) * (fb1[i] + 2 * fb2[i] + 2 * fb3[i] + fb4[i]);
-            }
-            
-            printf("A\n");
-            for(i = 0 ; i < TotalNe; i++) {
-                printf("%2.2f; ", A[i]);
-            }
-            printf("\n");
-            printf("B\n");
-            for(i = 0 ; i < TotalNe; i++) {
-                printf("%2.2f; ", B[i]);
-            }
-            printf("\n");
-            printf("C\n");
-            for(i = 0 ; i < TotalNe; i++) {
-                printf("%2.2f; ", C[i]);
-            }
-            printf("\n");
-            printf("BoundNe: %d\n", BoundNe);
-            printf("D\n");
-            for(i = 0 ; i < TotalNe; i++) {
-                printf("%2.2f; ", D[i]);
-            }
-            printf("\n");
-            printf("***ExternalI*****\n");
-            for(i = 0; i < TotalNe; i++) { printf("%1.1f; ", ExternalI[i]); }
-            printf("\n");
-            printf("I\n");
-            for(i = 0; i < TotalNe; i++) { printf("%f; ", I[i]); }
-            printf("\n");
-            printf("Ibias\n");
-            for(i = 0; i < TotalNe; i++) { printf("%f; ", Ibias[i]); }
-            printf("\n");
-
-            
-            printf("fa1\n");
-            for(i = 0; i < TotalNe; i++) { printf("%f; ", fa1[i]); }
-            printf("\n");
-            printf("fa2\n");
-            for(i = 0; i < TotalNe; i++) { printf("%f; ", fa2[i]); }
-            printf("\n");
-            printf("fa3\n");
-            for(i = 0; i < TotalNe; i++) { printf("%f; ", fa3[i]); }
-            printf("\n");
-            printf("fa4\n");
-            for(i = 0; i < TotalNe; i++) { printf("%f; ", fa4[i]); }
-            printf("\n");
-
-            printf("fb1\n");
-            for(i = 0; i < TotalNe; i++) { printf("%f; ", fb1[i]); }
-            printf("\n");
-            printf("fb2\n");
-            for(i = 0; i < TotalNe; i++) { printf("%f; ", fb2[i]); }
-            printf("\n");
-            printf("fb3\n");
-            for(i = 0; i < TotalNe; i++) { printf("%f; ", fb3[i]); }
-            printf("\n");
-            printf("fb4\n");
-            for(i = 0; i < TotalNe; i++) { printf("%f; ", fb4[i]); }
-            printf("\n");
-
-            printf("S1\n");
-            for(i = 0; i < TotalNe; i++) { printf("%f; ", S1[i]); }
-            printf("\n");
-            printf("S2\n");
-            for(i = 0; i < TotalNe; i++) { printf("%f; ", S2[i]); }
-            printf("\n");
-
-            
-            printf("u\n");
-            for(i = 0; i < TotalNe; i++) { printf("%f; ", u[i]); }
-            printf("\n");
-            printf("v\n");
-            for(i = 0; i < TotalNe; i++) { printf("%f; ", v[i]); }
-            printf("\n");
-            
-
-
-
-            printf("---------------------\n\n");
-            // for(i = 0; i < TotalNe; i++) printf("%1.5f, ", v[i]);
-            // printf(" || ");
-            // for(i = 0; i < TotalNe; i++) printf("%1.5f, ", u[i]);
-            // printf("\n");
-
         }
         
+        //line 160
+        if(ModulationCurrent > 0) {
+            // 4 
+            for(i = BoundNe; i < ShiftNe/2+BoundNe; i++) ExternalI[i] = ModulationCurrent;
+            for(i = ShiftNe+BoundNe+InhibitionNe; i < ShiftNe+BoundNe+1+CoupledNe; i++) ExternalI[i] = Speed;
+            printf("s%d\n", Speed);
+        } else if(ModulationCurrent < 0) {
+            for(i = ShiftNe; i < ShiftNe+BoundNe; i++) ExternalI[i] = -ModulationCurrent;
+            for(i = ShiftNe+BoundNe+InhibitionNe; i < ShiftNe+BoundNe+1+CoupledNe; i++) ExternalI[i] = Speed;
+        } else {
+            for(i = BoundNe; i < ShiftNe+BoundNe; i++) ExternalI[i] = 0;
+        }
+                                    
+        for(i = 0; i < TotalNe; i++) I[i] = ExternalI[i] + S1[i] + S2[i] + Inoise[i] + Ibias[i];
+
+        // Line 172
+        float tmpf[TotalNe] = {0};
+        float fa1[TotalNe], fa2[TotalNe], fa3[TotalNe], fa4[TotalNe], fb1[TotalNe], fb2[TotalNe], fb3[TotalNe], fb4[TotalNe];
+        char flnm[30];
+        snprintf(flnm, 30, "./couts/t%d.txt", t);
+        printf("%s", flnm);
+        FILE* tempfptr = fopen(flnm, "w");
+        fprintf(tempfptr,"ExternalI = ");
+        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", ExternalI[i]); }
+        fprintf(tempfptr,"\n");
+        fprintf(tempfptr,"before u = ");
+        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", u[i]); }
+        fprintf(tempfptr,"\n");
+        fprintf(tempfptr,"before v = ");
+        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", v[i]); }
+        fprintf(tempfptr,"\n");
+
+        funca(fa1, v,u,B,I,DeltaT, 0, tmpf, tmpf);
+        funcb(fb1, A,B,v,u,DeltaT, 0, tmpf, tmpf);
+        
+        funca(fa2, v, u, B, I, DeltaT, DeltaT*0.5, fa1, fb1);
+        funcb(fb2, A, B, v, u, DeltaT, DeltaT*0.50000, fa1, fb1);
+
+        funca(fa3, v, u, B, I, DeltaT, DeltaT*0.5, fa2, fb2);
+        funcb(fb3, A, B, v, u, DeltaT, DeltaT*0.5, fa2, fb2);
+
+        funca(fa4, v, u, B, I, DeltaT, DeltaT, fa3, fb3);
+        funcb(fb4, A, B, v, u, DeltaT, DeltaT, fa3, fb3);
+
+        for(i = 0; i < TotalNe; i++) {
+            v[i] += (DeltaT / 6.0) * (fa1[i] + 2 * fa2[i] + 2 * fa3[i] + fa4[i]);
+            u[i] += (DeltaT / 6.0) * (fb1[i] + 2 * fb2[i] + 2 * fb3[i] + fb4[i]);
+        }
+        
+        fprintf(tempfptr,"Ibias = ");
+        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", Ibias[i]);}
+        fprintf(tempfptr,"\n");
+        fprintf(tempfptr,"fa1 = ");
+        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fa1[i]); }
+        fprintf(tempfptr,"\n");
+        fprintf(tempfptr,"fa2 = ");
+        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fa2[i]); }
+        fprintf(tempfptr,"\n");
+        fprintf(tempfptr,"fa3 = ");
+        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fa3[i]); }
+        fprintf(tempfptr,"\n");
+        fprintf(tempfptr,"fa4 = ");
+        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fa4[i]); }
+        fprintf(tempfptr,"\n");
+
+        fprintf(tempfptr,"fb1 = ");
+        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fb1[i]); }
+        fprintf(tempfptr,"\n");
+        fprintf(tempfptr,"fb2 = ");
+        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fb2[i]); }
+        fprintf(tempfptr,"\n");
+        fprintf(tempfptr,"fb3 = ");
+        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fb3[i]); }
+        fprintf(tempfptr,"\n");
+        fprintf(tempfptr,"fb4 = ");
+        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fb4[i]); }
+        fprintf(tempfptr,"\n");
+        fprintf(tempfptr,"I = ");
+        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", I[i]); }
+        fprintf(tempfptr,"\n");
+        fprintf(tempfptr,"S1 = ");
+        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", S1[i]); }
+        fprintf(tempfptr,"\n");
+        fprintf(tempfptr,"S2 = ");
+        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", S2[i]); }
+        fprintf(tempfptr,"\n");
+        fprintf(tempfptr,"u = ");
+        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", u[i]); }
+        fprintf(tempfptr,"\n");
+        fprintf(tempfptr,"v = ");
+        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", v[i]); }
+        fprintf(tempfptr,"\n");
+        fclose(tempfptr);
+
+    }
+    
 
 
-    // }
+// }
 
 
 }
