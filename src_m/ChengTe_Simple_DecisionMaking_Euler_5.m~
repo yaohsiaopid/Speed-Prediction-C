@@ -156,12 +156,8 @@ for l=1:1
 		I=ExternalI+S1+S2+Inoise+Ibias;
 		fptr = fopen("../matlabout/t" + t + ".txt", 'w');
         fprintf(fptr, "before fired2 = ");
-        fprintf(fptr, '%3.4f ', sum(1*g2(:,fired2),2));
-%         if size(fired2) > 0
-%             fprintf(fptr, '%3.4f ', fired2);
-%         else
-%             fprintf(fptr, '');
-%         end
+        if size
+        fprintf(fptr, '%3.4f ', fired2);
         fprintf(fptr, '\n');
         
         

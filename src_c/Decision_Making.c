@@ -40,7 +40,7 @@ int main()
 {
     const int ModulationCurrent=Direction[1];
     int Speed=Velocity[1];
-    
+    int debug_ = 1;
     int i, j, k;
     double tmpVal;
     // line 50 init A,B,C,D
@@ -101,7 +101,7 @@ int main()
     double Position[1000][3] = {0};
     int PositionIdx = 0, x = 0;
     // for(t = 1; t < SimulationTime / DeltaT; t++) 
-    for(t = 1; t < 200; t++) 
+    for(t = 1; t < 1337; t++) 
     {
         // printf("%d,", t);
         if (t > StimulationOnset && t <= StimulationOffset) { ExternalI[StimulusNeuron-1] = StimulusStrength[0]; }
@@ -121,7 +121,15 @@ int main()
         int fired1Num = 0, fired2Num = 0, fired3Num = 0;
         for(i = 0, j = 0; i < BoundNe + ShiftNe + InhibitionNe; i++) { if(v[i] >= Vth) {fired1[j] = i; fired3[j] = i; fired[j] = i; v[fired[j]] = C[fired[j]];  u[fired[j]] += D[fired[j]]; j++;}} 
         fired1Num = j;
-        for(i = BoundNe + ShiftNe + InhibitionNe, j = 0; i < TotalNe; i++) { if(v[i] >= Vth) {fired2[j] = i; fired3[j + fired1Num] = i; fired[j + fired1Num] = i; v[fired[j+fired1Num]] = C[fired[j+fired1Num]]; u[fired[j+fired1Num]] += D[fired[j+fired1Num]]; j++;}} 
+        for(i = BoundNe + ShiftNe + InhibitionNe, j = 0; i < TotalNe; i++) { 
+            if(v[i] >= Vth) {
+                fired2[j] = i; 
+                fired3[j + fired1Num] = i;
+                fired[j + fired1Num] = i; 
+                v[fired[j+fired1Num]] = C[fired[j+fired1Num]]; 
+                u[fired[j+fired1Num]] += D[fired[j+fired1Num]]; j++;
+            }
+        } 
         fired2Num = j; fired3Num = fired2Num + fired1Num;
         for(i = 0; i < fired3Num; i++) { firings[i] = t * DeltaT + fired3[i]; firings[i+fired3Num] = fired3[i]; }
         
@@ -138,18 +146,29 @@ int main()
 
         // }
 
+        char flnm[30];
+        snprintf(flnm, 30, "../couts/t%d.txt", t);
+        printf("%s", flnm);
+        FILE* tempfptr = fopen(flnm, "w");
+        fprintf(tempfptr,"before fired2 = ");
+        // for(j = 0; j < fired2Num; j++) fprintf(tempfptr,"%3.4f ", (fired2[j] + 1) * 1.0);  // + 1 to match matlab 
+        // fprintf(tempfptr,"\n");
         // line 145 144
         for(i = 0; i < TotalNe; i++) {
-            int tmpSum = 0;
+            double tmpSum = 0;
             for(j = 0; j < fired1Num; j++) tmpSum += g1[i][fired1[j]];
             S1[i] = S1[i] + tmpSum - (S1[i]/Tau1)*DeltaT;
             
             tmpSum = 0;
-            for(j = 0; j < fired2Num; j++) tmpSum += g2[i][fired2[j]];
+            for(j = 0; j < fired2Num; j++) tmpSum += g2[i][fired2[j]]; 
+            fprintf(tempfptr,"%3.4f ", tmpSum);
             S2[i] = S2[i] + tmpSum - (S2[i]/Tau2)*DeltaT;
             
         }
+        fprintf(tempfptr,"\n");
+
         
+
         //line 160
         if(ModulationCurrent > 0) {
             // 4 
@@ -168,13 +187,18 @@ int main()
         // Line 172
         double tmpf[TotalNe] = {0};
         double fa1[TotalNe], fa2[TotalNe], fa3[TotalNe], fa4[TotalNe], fb1[TotalNe], fb2[TotalNe], fb3[TotalNe], fb4[TotalNe];
-        char flnm[30];
-        snprintf(flnm, 30, "../couts/t%d.txt", t);
-        printf("%s", flnm);
-        FILE* tempfptr = fopen(flnm, "w");
+        
         fprintf(tempfptr,"ExternalI = ");
         for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", ExternalI[i]); }
         fprintf(tempfptr,"\n");
+
+        fprintf(tempfptr,"before S1 = ");
+        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", S1[i]); }
+        fprintf(tempfptr,"\n");
+        fprintf(tempfptr,"before S2 = ");
+        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", S2[i]); }
+        fprintf(tempfptr,"\n");
+
         fprintf(tempfptr,"before u = ");
         for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", u[i]); }
         fprintf(tempfptr,"\n");
@@ -198,52 +222,54 @@ int main()
             v[i] += (DeltaT / 6.0) * (fa1[i] + 2 * fa2[i] + 2 * fa3[i] + fa4[i]);
             u[i] += (DeltaT / 6.0) * (fb1[i] + 2 * fb2[i] + 2 * fb3[i] + fb4[i]);
         }
-        
-        fprintf(tempfptr,"Ibias = ");
-        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", Ibias[i]);}
-        fprintf(tempfptr,"\n");
-        fprintf(tempfptr,"fa1 = ");
-        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fa1[i]); }
-        fprintf(tempfptr,"\n");
-        fprintf(tempfptr,"fa2 = ");
-        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fa2[i]); }
-        fprintf(tempfptr,"\n");
-        fprintf(tempfptr,"fa3 = ");
-        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fa3[i]); }
-        fprintf(tempfptr,"\n");
-        fprintf(tempfptr,"fa4 = ");
-        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fa4[i]); }
-        fprintf(tempfptr,"\n");
+        if(debug_ == 1) {
+            fprintf(tempfptr,"Ibias = ");
+            for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", Ibias[i]);}
+            fprintf(tempfptr,"\n");
+            fprintf(tempfptr,"fa1 = ");
+            for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fa1[i]); }
+            fprintf(tempfptr,"\n");
+            fprintf(tempfptr,"fa2 = ");
+            for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fa2[i]); }
+            fprintf(tempfptr,"\n");
+            fprintf(tempfptr,"fa3 = ");
+            for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fa3[i]); }
+            fprintf(tempfptr,"\n");
+            fprintf(tempfptr,"fa4 = ");
+            for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fa4[i]); }
+            fprintf(tempfptr,"\n");
 
-        fprintf(tempfptr,"fb1 = ");
-        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fb1[i]); }
-        fprintf(tempfptr,"\n");
-        fprintf(tempfptr,"fb2 = ");
-        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fb2[i]); }
-        fprintf(tempfptr,"\n");
-        fprintf(tempfptr,"fb3 = ");
-        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fb3[i]); }
-        fprintf(tempfptr,"\n");
-        fprintf(tempfptr,"fb4 = ");
-        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fb4[i]); }
-        fprintf(tempfptr,"\n");
-        fprintf(tempfptr,"I = ");
-        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", I[i]); }
-        fprintf(tempfptr,"\n");
-        fprintf(tempfptr,"S1 = ");
-        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", S1[i]); }
-        fprintf(tempfptr,"\n");
-        fprintf(tempfptr,"S2 = ");
-        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", S2[i]); }
-        fprintf(tempfptr,"\n");
-        fprintf(tempfptr,"u = ");
-        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", u[i]); }
-        fprintf(tempfptr,"\n");
-        fprintf(tempfptr,"v = ");
-        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", v[i]); }
-        fprintf(tempfptr,"\n");
-        fclose(tempfptr);
-        printf("\n");
+            fprintf(tempfptr,"fb1 = ");
+            for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fb1[i]); }
+            fprintf(tempfptr,"\n");
+            fprintf(tempfptr,"fb2 = ");
+            for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fb2[i]); }
+            fprintf(tempfptr,"\n");
+            fprintf(tempfptr,"fb3 = ");
+            for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fb3[i]); }
+            fprintf(tempfptr,"\n");
+            fprintf(tempfptr,"fb4 = ");
+            for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", fb4[i]); }
+            fprintf(tempfptr,"\n");
+            fprintf(tempfptr,"I = ");
+            for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", I[i]); }
+            fprintf(tempfptr,"\n");
+            fprintf(tempfptr,"S1 = ");
+            for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", S1[i]); }
+            fprintf(tempfptr,"\n");
+            fprintf(tempfptr,"S2 = ");
+            for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", S2[i]); }
+            fprintf(tempfptr,"\n");
+            fprintf(tempfptr,"u = ");
+            for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", u[i]); }
+            fprintf(tempfptr,"\n");
+            fprintf(tempfptr,"v = ");
+            for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", v[i]); }
+            fprintf(tempfptr,"\n");
+            fclose(tempfptr);
+            printf("\n");
+        }
+        
 
     }
     
