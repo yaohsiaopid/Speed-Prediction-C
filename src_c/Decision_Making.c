@@ -100,8 +100,8 @@ int main()
     int n = 1, t;
     double Position[1000][3] = {0};
     int PositionIdx = 0, x = 0;
-    // for(t = 1; t < SimulationTime / DeltaT; t++) 
-    for(t = 1; t < 1337; t++) 
+    for(t = 1; t < SimulationTime / DeltaT; t++) 
+    // for(t = 1; t < 3638; t++) 
     {
         // printf("%d,", t);
         if (t > StimulationOnset && t <= StimulationOffset) { ExternalI[StimulusNeuron-1] = StimulusStrength[0]; }
