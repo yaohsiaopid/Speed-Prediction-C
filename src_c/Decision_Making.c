@@ -40,7 +40,7 @@ int main()
 {
     const int ModulationCurrent=Direction[1];
     int Speed=Velocity[1];
-    int debug_ = 1;
+    int debug_ = 2;
     int i, j, k;
     double tmpVal;
     // line 50 init A,B,C,D
@@ -61,34 +61,13 @@ int main()
     double g1[TotalNe][TotalNe] = {0} , g2[TotalNe][TotalNe] = {0}; // Assume dimension same as TotalNe
     FILE *fptr; 
     fptr = fopen("../Connection_Table_temp.txt", "r");
-    while(fscanf(fptr, "%d %d %lf", &i, &j, &tmpVal) == 3) {
-        // printf("tmp %f\n", tmpVal);
-        g1[j-1][i-1] = tmpVal; 
-    }
-    // for(i = 0; i < TotalNe; i++) {
-    //     for(j = 0; j < TotalNe; j++) {
-    //         printf("%5.5f   ", g1[i][j] );
-    //     }
-    //     printf("\n");
-    // }
-    // printf("------g1-----\n");
+    while(fscanf(fptr, "%d %d %lf", &i, &j, &tmpVal) == 3) { g1[j-1][i-1] = tmpVal; }
     fclose(fptr);
-
     fptr = fopen("../Connection_Table_temp_short.txt", "r");
-    while(fscanf(fptr, "%d %d %lf", &i, &j, &tmpVal) == 3) {
-        g2[j-1][i-1] = tmpVal; 
-    }
-    // for(i = 0; i < TotalNe; i++) {
-    //     for(j = 0; j < TotalNe; j++) {
-    //         printf("%5.5f   ", g2[i][j] );
-    //     }
-    //     printf("\n");
-    // }
-    // printf("------g2-----\n");
+    while(fscanf(fptr, "%d %d %lf", &i, &j, &tmpVal) == 3) {g2[j-1][i-1] = tmpVal; }
     fclose(fptr);
     // VelocityLen = 1;
     int l = 1;
-
     // Line 84 - 92
     Speed = Velocity[l];
     for(i = 0; i < TotalNe; i++) { v[i] = Vr; u[i] = 10.0; S1[i] = 0; S2[i] = 0;}
@@ -100,23 +79,16 @@ int main()
     int n = 1, t;
     double Position[1000][3] = {0};
     int PositionIdx = 0, x = 0;
-    for(t = 1; t < SimulationTime / DeltaT; t++) 
+    FILE* tempfptr = NULL;
+    if (debug_ == 2) {
+        tempfptr = fopen("plot.txt", "w");
+        // fprintf(tempfptr,"Simulation Time: %d, DeltaT: %f\n\n", SimulationTime, DeltaT);
+    }
+    for(t = 1; t <= SimulationTime/DeltaT; t++) 
     // for(t = 1; t < 3638; t++) 
     {
-        // printf("%d,", t);
         if (t > StimulationOnset && t <= StimulationOffset) { ExternalI[StimulusNeuron-1] = StimulusStrength[0]; }
         else { ExternalI[StimulusNeuron - 1] = 0; }
-
-        // lien 114
-        // if (t % SpeedChecking == 0) {
-        //     x = 0;
-        //     for(int m = 1; m < 9; m++) {
-        //         if(FirRate[t-1][m] > 950) { x = m; Position[PositionIdx][0] = t; Position[PositionIdx][1] = (t/16)*DeltaT; Position[PositionIdx][2] = x;  PositionIdx++; }
-        //     }
-        //     if(x == 8)
-        //         break;
-        // }
-
         int fired1[TotalNe] = {0}, fired2[TotalNe] = {0}, fired3[TotalNe] = {0}, fired[TotalNe] = {0};
         int fired1Num = 0, fired2Num = 0, fired3Num = 0;
         for(i = 0, j = 0; i < BoundNe + ShiftNe + InhibitionNe; i++) { if(v[i] >= Vth) {fired1[j] = i; fired3[j] = i; fired[j] = i; v[fired[j]] = C[fired[j]];  u[fired[j]] += D[fired[j]]; j++;}} 
@@ -145,12 +117,14 @@ int main()
         // } else {
 
         // }
-
-        char flnm[30];
-        snprintf(flnm, 30, "../couts/t%d.txt", t);
-        printf("%s", flnm);
-        FILE* tempfptr = fopen(flnm, "w");
-        fprintf(tempfptr,"before fired2 = ");
+        if (debug_ == 1) {
+            char flnm[30];
+            snprintf(flnm, 30, "../couts/t%d.txt", t);
+            printf("%s", flnm);
+            tempfptr = fopen(flnm, "w");
+            fprintf(tempfptr,"before fired2 = ");
+        }
+        
         // for(j = 0; j < fired2Num; j++) fprintf(tempfptr,"%3.4f ", (fired2[j] + 1) * 1.0);  // + 1 to match matlab 
         // fprintf(tempfptr,"\n");
         // line 145 144
@@ -161,11 +135,11 @@ int main()
             
             tmpSum = 0;
             for(j = 0; j < fired2Num; j++) tmpSum += g2[i][fired2[j]]; 
-            fprintf(tempfptr,"%3.4f ", tmpSum);
+            if (debug_ == 1) {fprintf(tempfptr,"%3.4f ", tmpSum); }
             S2[i] = S2[i] + tmpSum - (S2[i]/Tau2)*DeltaT;
             
         }
-        fprintf(tempfptr,"\n");
+        if (debug_ == 1) { fprintf(tempfptr,"\n"); }
 
         
 
@@ -187,24 +161,26 @@ int main()
         // Line 172
         double tmpf[TotalNe] = {0};
         double fa1[TotalNe], fa2[TotalNe], fa3[TotalNe], fa4[TotalNe], fb1[TotalNe], fb2[TotalNe], fb3[TotalNe], fb4[TotalNe];
+        if (debug_ == 1) {
+            fprintf(tempfptr,"ExternalI = ");
+            for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", ExternalI[i]); }
+            fprintf(tempfptr,"\n");
+
+            fprintf(tempfptr,"before S1 = ");
+            for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", S1[i]); }
+            fprintf(tempfptr,"\n");
+            fprintf(tempfptr,"before S2 = ");
+            for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", S2[i]); }
+            fprintf(tempfptr,"\n");
+
+            fprintf(tempfptr,"before u = ");
+            for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", u[i]); }
+            fprintf(tempfptr,"\n");
+            fprintf(tempfptr,"before v = ");
+            for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", v[i]); }
+            fprintf(tempfptr,"\n");
+        }
         
-        fprintf(tempfptr,"ExternalI = ");
-        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", ExternalI[i]); }
-        fprintf(tempfptr,"\n");
-
-        fprintf(tempfptr,"before S1 = ");
-        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", S1[i]); }
-        fprintf(tempfptr,"\n");
-        fprintf(tempfptr,"before S2 = ");
-        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", S2[i]); }
-        fprintf(tempfptr,"\n");
-
-        fprintf(tempfptr,"before u = ");
-        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", u[i]); }
-        fprintf(tempfptr,"\n");
-        fprintf(tempfptr,"before v = ");
-        for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", v[i]); }
-        fprintf(tempfptr,"\n");
 
         funca(fa1, v,u,B,I,DeltaT, 0, tmpf, tmpf);
         funcb(fb1, A,B,v,u,DeltaT, 0, tmpf, tmpf);
@@ -268,6 +244,10 @@ int main()
             fprintf(tempfptr,"\n");
             fclose(tempfptr);
             printf("\n");
+        } else if (debug_ == 2) {
+            fprintf(tempfptr,"v = ");
+            for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", v[i]); }
+            fprintf(tempfptr,"\n");
         }
         
 
