@@ -1,3 +1,8 @@
+/* TODO: continue with around line 100
+ * use pointer to switch between slow/fast circuit,
+ * and don't forget to update the reference line number.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -16,16 +21,22 @@
 #define Tau1 10
 #define Tau2 5
 #define LenFiring 100000 // SimulationTime / DeltaT
-const int SimulationTime = 1000; // ms
+const int SimulationTime = 2000; // ms
 const double DeltaT = 0.0100000000000; // ms
 const int NoiseStrengthBase = 0;
 int Velocity[2] = {1, 8}; // Length subject to change
 int VelocityLen = 2;
-const double StimulusStrength[1] = {5.5};
+const double SaSpeed[4] = {1, 1.5, 2.5, 4};
+int SaSpeedLen = 4;
+int SaPosition[4] = {1, 1, 1, 1};
+int SaPositionLen = 4;
+const double SaBorder=1.7308337;
+const double StimulusStrength = 15.5;
 const int StimulusNeuron=1;
-const double StimulationOnset= 0; 
-const double StimulationOffset= 5000;
-const int Direction[3] = {0,4,-4};
+const double StimulationOnset= 10000; 
+const double StimulationOffset= 13000;
+const int DirectionSlow[3] = {0,4,-4};
+const int DirectionFast[3] = {0,7,-7};
 // const double TimeWindow = 15.0 / DeltaT;
 
 const int FrameInterval=3;
@@ -33,7 +44,7 @@ const int FrameInterval=3;
 // BoundNe+ShiftNe+InhibitionNe+FMNe+BaseFrequencyNe+CoupledNe;
 
 // % Bump,Shift,Inh,Couple,Base,FM
-double a[6]={0.04,0.04,0.04,0.02,0.02,0.02}, b[6]={0.1,0.1,0.1,0.2,0.2,0.2}, c[6]={100-39.5,100-52,100-57,100-45,100-39.5,100-57}, d[6]={0.1,0.1,0.1,0.1,0.1,0.1},IB[6]={9.4,2,-2,16,10,-11};
+double a[6]={0.04,0.04,0.04,0.02,0.02,0.02}, b[6]={0.1,0.1,0.1,0.2,0.2,0.2}, c[6]={100-39.5,100-52,100-57,100-45,100-39.5,100-57}, dFast[6]={0.1,0.1,0.1,0.1,0.1,0.1}, dSlow[6]={0.1,0.1,0.1,0.1,0.1,6}, IBFast[6]={6,-35,-2,16,10,-11}, IBSlow[6]={9.4,2,-2,16,10,-11};
 void funca(double fa[TotalNe], const double v[TotalNe],const double u[TotalNe],const double b[TotalNe],const double I[TotalNe],const double dT, const double dtt, const double arg1[TotalNe], const double arg2[TotalNe]);
 void funcb(double fb[TotalNe], const double a[TotalNe],const double b[TotalNe],const double v[TotalNe],const double u[TotalNe],const double dT, const double dtt, const double arg1[TotalNe], const double arg2[TotalNe]);
 int main()
@@ -42,6 +53,7 @@ int main()
     int Speed=Velocity[1];
     int debug_ = 2;
     int i, j, k;
+    double *d = dSlow, *IB = IBSlow;
     double tmpVal;
     // line 50 init A,B,C,D
     double A[TotalNe], B[TotalNe], C[TotalNe], D[TotalNe], Ibias[TotalNe], ExternalI[TotalNe] = {0}, Inoise[TotalNe] = {0}, v[TotalNe], u[TotalNe], S1[TotalNe] = {0}, S2[TotalNe] = {0}, Potential[TotalNeA1] = {0}, SynapticCurrent1[TotalNeA1] = {0}, SynapticCurrent2[TotalNeA1] = {0};
@@ -58,13 +70,20 @@ int main()
     for(i = 0; i < TotalNe; i++) { Potential[i+1] = v[i]; SynapticCurrent1[i+1] = S1[i]; SynapticCurrent2[i+1] = S2[i]; }
     
     // line 76 g1 g2
-    double g1[TotalNe][TotalNe] = {0} , g2[TotalNe][TotalNe] = {0}; // Assume dimension same as TotalNe
+    double g1_Slow[TotalNe][TotalNe] = {0}, g1_Fast[TotalNe][TotalNe] = {0}, g2_Slow[TotalNe][TotalNe] = {0}, g2_Fast[TotalNe][TotalNe] = {0};  // Assume dimension same as TotalNe
+    double (*g1)[TotalNe] = g1_Slow, (*g2)[TotalNe] = g2_Slow;
     FILE *fptr; 
-    fptr = fopen("../Connection_Table_temp.txt", "r");
-    while(fscanf(fptr, "%d %d %lf", &i, &j, &tmpVal) == 3) { g1[j-1][i-1] = tmpVal; }
+    fptr = fopen("../Connection_Table_Slow.txt", "r");
+    while(fscanf(fptr, "%d %d %lf", &i, &j, &tmpVal) == 3) { g1_Slow[j-1][i-1] = tmpVal; }
     fclose(fptr);
-    fptr = fopen("../Connection_Table_temp_short.txt", "r");
-    while(fscanf(fptr, "%d %d %lf", &i, &j, &tmpVal) == 3) {g2[j-1][i-1] = tmpVal; }
+    fptr = fopen("../Connection_Table_Slow_short.txt", "r");
+    while(fscanf(fptr, "%d %d %lf", &i, &j, &tmpVal) == 3) { g2_Slow[j-1][i-1] = tmpVal; }
+    fclose(fptr);
+    fptr = fopen("../Connection_Table_Fast.txt", "r");
+    while(fscanf(fptr, "%d %d %lf", &i, &j, &tmpVal) == 3) { g1_Fast[j-1][i-1] = tmpVal; }
+    fclose(fptr);
+    fptr = fopen("../Connection_Table_Fast_short.txt", "r");
+    while(fscanf(fptr, "%d %d %lf", &i, &j, &tmpVal) == 3) { g2_Fast[j-1][i-1] = tmpVal; }
     fclose(fptr);
     // VelocityLen = 1;
     int l = 1;
