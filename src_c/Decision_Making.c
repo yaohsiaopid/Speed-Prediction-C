@@ -27,12 +27,13 @@ const int NoiseStrengthBase = 0;
 int Velocity[2] = {1, 8}; // Length subject to change
 int VelocityLen = 2;
 const double SaSpeed[4] = {1, 1.5, 2.5, 4};
+//const double SaSpeed[4] = {4, 2.5, 1.5, 1};
 int SaSpeedLen = 4;
 int SaPosition[4] = {1, 1, 1, 1};
 int SaPositionLen = 4;
 const double SaBorder=1.7308337;
 const double StimulusStrength = 15.5;
-const int StimulusNeuron=1;
+int StimulusNeuron=1;
 const double StimulationOnset= 10000; 
 const double StimulationOffset= 13000;
 const int DirectionSlow[3] = {0,4,-4};
@@ -47,23 +48,32 @@ const int FrameInterval=3;
 double a[6]={0.04,0.04,0.04,0.02,0.02,0.02}, b[6]={0.1,0.1,0.1,0.2,0.2,0.2}, c[6]={100-39.5,100-52,100-57,100-45,100-39.5,100-57}, dFast[6]={0.1,0.1,0.1,0.1,0.1,0.1}, dSlow[6]={0.1,0.1,0.1,0.1,0.1,6}, IBFast[6]={6,-35,-2,16,10,-11}, IBSlow[6]={9.4,2,-2,16,10,-11};
 void funca(double fa[TotalNe], const double v[TotalNe],const double u[TotalNe],const double b[TotalNe],const double I[TotalNe],const double dT, const double dtt, const double arg1[TotalNe], const double arg2[TotalNe]);
 void funcb(double fb[TotalNe], const double a[TotalNe],const double b[TotalNe],const double v[TotalNe],const double u[TotalNe],const double dT, const double dtt, const double arg1[TotalNe], const double arg2[TotalNe]);
+
+double MYABS(double x) {
+	if(x < 0) return -x;
+	else return x;
+}
+
 int main()
 {
-    const int ModulationCurrent=Direction[1];
+    int ModulationCurrent=DirectionSlow[1];
     int Speed=Velocity[1];
     int debug_ = 2;
     int i, j, k;
-    double *d = dSlow, *IB = IBSlow;
-    double tmpVal;
+    double mychart_x[29]={0}, mychart_y[29]={0};
+    double tmpVal, tmpVal_1;
+    double UpdateStimulus = 3000;
     // line 50 init A,B,C,D
-    double A[TotalNe], B[TotalNe], C[TotalNe], D[TotalNe], Ibias[TotalNe], ExternalI[TotalNe] = {0}, Inoise[TotalNe] = {0}, v[TotalNe], u[TotalNe], S1[TotalNe] = {0}, S2[TotalNe] = {0}, Potential[TotalNeA1] = {0}, SynapticCurrent1[TotalNeA1] = {0}, SynapticCurrent2[TotalNeA1] = {0};
-    for(i = 0; i < BoundNe; i++) {  A[i] = a[0];    B[i] = b[0];    C[i] = c[0];    D[i] = d[0];    Ibias[i] = IB[0];  }
-    for(i = BoundNe; i < ShiftNe + BoundNe; i++) {  A[i] = a[1];    B[i] = b[1];    C[i] = c[1];    D[i] = d[1];    Ibias[i] = IB[1];  }
-    for(i = BoundNe + ShiftNe; i < ShiftNe + BoundNe + InhibitionNe; i++) {  A[i] = a[2];    B[i] = b[2];    C[i] = c[2];    D[i] = d[2];    Ibias[i] = IB[2];  }
-    for(i = BoundNe + ShiftNe + InhibitionNe; i < ShiftNe + BoundNe + InhibitionNe + CoupledNe; i++) {  A[i] = a[3];    B[i] = b[3];    C[i] = c[3];    D[i] = d[3];    Ibias[i] = IB[3];  }
-    for(i = BoundNe + ShiftNe + InhibitionNe + CoupledNe; i < ShiftNe + BoundNe + InhibitionNe + CoupledNe + BaseFrequencyNe; i++) {  A[i] = a[4];    B[i] = b[4];    C[i] = c[4];    D[i] = d[4];    Ibias[i] = IB[4];  }
-    for(i = BoundNe + ShiftNe + InhibitionNe + CoupledNe + BaseFrequencyNe; i < ShiftNe + BoundNe + InhibitionNe + CoupledNe + BaseFrequencyNe + FMNe; i++) {  A[i] = a[5];    B[i] = b[5];    C[i] = c[5];    D[i] = d[5];    Ibias[i] = IB[5];  }
-    
+    double A[TotalNe], B[TotalNe], C[TotalNe], DSlow[TotalNe], DFast[TotalNe], IbiasSlow[TotalNe], IbiasFast[TotalNe], ExternalI[TotalNe] = {0}, Inoise[TotalNe] = {0}, v[TotalNe], u[TotalNe], S1[TotalNe] = {0}, S2[TotalNe] = {0}, Potential[TotalNeA1] = {0}, SynapticCurrent1[TotalNeA1] = {0}, SynapticCurrent2[TotalNeA1] = {0};
+    double *D, *Ibias;
+    for(i = 0; i < BoundNe; i++) {  A[i] = a[0];    B[i] = b[0];    C[i] = c[0];    DSlow[i] = dSlow[0];    DFast[i] = dFast[0];    IbiasSlow[i] = IBSlow[0];    IbiasFast[i] = IBFast[0]; }
+    for(i = BoundNe; i < ShiftNe + BoundNe; i++) {  A[i] = a[1];    B[i] = b[1];    C[i] = c[1];    DSlow[i] = dSlow[1];    DFast[i] = dFast[1];    IbiasSlow[i] = IBSlow[1];    IbiasFast[i] = IBFast[1];  }
+    for(i = BoundNe + ShiftNe; i < ShiftNe + BoundNe + InhibitionNe; i++) {  A[i] = a[2];    B[i] = b[2];    C[i] = c[2];    DSlow[i] = dSlow[2];    DFast[i] = dFast[2];    IbiasSlow[i] = IBSlow[2];    IbiasFast[i] = IBFast[2];  }
+    for(i = BoundNe + ShiftNe + InhibitionNe; i < ShiftNe + BoundNe + InhibitionNe + CoupledNe; i++) {  A[i] = a[3];    B[i] = b[3];    C[i] = c[3];    DSlow[i] = dSlow[3];    DFast[i] = dFast[3];    IbiasSlow[i] = IBSlow[3];    IbiasFast[i] = IBFast[3];  }
+    for(i = BoundNe + ShiftNe + InhibitionNe + CoupledNe; i < ShiftNe + BoundNe + InhibitionNe + CoupledNe + BaseFrequencyNe; i++) {  A[i] = a[4];    B[i] = b[4];    C[i] = c[4];    DSlow[i] = dSlow[4];    DFast[i] = dFast[4];    IbiasSlow[i] = IBSlow[4];    IbiasFast[i] = IBFast[4];  }
+    for(i = BoundNe + ShiftNe + InhibitionNe + CoupledNe + BaseFrequencyNe; i < ShiftNe + BoundNe + InhibitionNe + CoupledNe + BaseFrequencyNe + FMNe; i++) {  A[i] = a[5];    B[i] = b[5];    C[i] = c[5];    DSlow[i] = dSlow[5];    DFast[i] = dFast[5];    IbiasSlow[i] = IBSlow[5];    IbiasFast[i] = IBFast[5];  }
+    D = DSlow;
+    Ibias = IbiasSlow;
     for(i = 0; i < TotalNe; i++) { v[i] = Vr; u[i] = 10.0; }
     v[TotalNe - 2] = 70;
 
@@ -85,6 +95,14 @@ int main()
     fptr = fopen("../Connection_Table_Fast_short.txt", "r");
     while(fscanf(fptr, "%d %d %lf", &i, &j, &tmpVal) == 3) { g2_Fast[j-1][i-1] = tmpVal; }
     fclose(fptr);
+    i = 0;
+    fptr = fopen("../speedchart.csv", "r");
+    while(fscanf(fptr, " %lf,%lf", &tmpVal, &tmpVal_1) == 2) {
+        mychart_x[i] = tmpVal;
+        mychart_y[i] = tmpVal_1;
+        i++;
+    }
+    fclose(fptr);
     // VelocityLen = 1;
     int l = 1;
     // Line 84 - 92
@@ -103,11 +121,70 @@ int main()
         tempfptr = fopen("plot.txt", "w");
         // fprintf(tempfptr,"Simulation Time: %d, DeltaT: %f\n\n", SimulationTime, DeltaT);
     }
+
+    double SaSpeed_temp;
+    int m = 0;
+    int t_updateTime = UpdateStimulus;
+    double tmpi, tmpvi, tmpui, minchar, tmpsu;
     for(t = 1; t <= SimulationTime/DeltaT; t++) 
     // for(t = 1; t < 3638; t++) 
     {
-        if (t > StimulationOnset && t <= StimulationOffset) { ExternalI[StimulusNeuron-1] = StimulusStrength[0]; }
-        else { ExternalI[StimulusNeuron - 1] = 0; }
+        if((t % 50000) == 5000) {
+            SaSpeed_temp = SaSpeed[m];
+            t_updateTime = 0;
+            StimulusNeuron = SaPosition[m];
+            if(MYABS(SaSpeed_temp) <= SaBorder) {
+                if(SaSpeed_temp < 0) {
+                    ModulationCurrent = DirectionSlow[2];
+                }
+                else {
+                    ModulationCurrent = DirectionSlow[1];
+                }
+                UpdateStimulus = 5000;
+                //mode = 0;
+                D = DSlow;
+                Ibias = IbiasSlow;
+                g1 = g1_Slow;
+                g2 = g2_Slow;
+            }
+            else {
+                if(SaSpeed_temp < 0) {
+                    ModulationCurrent = DirectionFast[2];
+                }
+                else {
+                    ModulationCurrent = DirectionFast[1];
+                }
+                UpdateStimulus = 3000;
+                //mode = 1;
+                D = DFast;
+                Ibias = IbiasFast;
+                g1 = g1_Fast;
+                g2 = g2_Fast;
+            }
+            tmpi = MYABS(SaSpeed_temp);
+            minchar = MYABS(mychart_y[0]-tmpi);
+            tmpsu = mychart_x[0];
+            for(i = 1; i < 29; i++) {
+                tmpvi = MYABS(mychart_y[i]-tmpi);
+                if(tmpvi < minchar) {
+                    minchar = tmpvi;
+                    tmpsu = mychart_x[i];
+                }
+            }
+            Speed = tmpsu;
+            if(m < SaSpeedLen) m++;
+        }
+
+        //if (t > StimulationOnset && t <= StimulationOffset) { ExternalI[StimulusNeuron-1] = StimulusStrength[0]; }
+        //else { ExternalI[StimulusNeuron - 1] = 0; }
+        if(t_updateTime < UpdateStimulus) {
+            ExternalI[StimulusNeuron-1] = StimulusStrength;
+            t_updateTime++;
+        }
+        else {
+            ExternalI[StimulusNeuron-1] = 0;
+        }
+
         int fired1[TotalNe] = {0}, fired2[TotalNe] = {0}, fired3[TotalNe] = {0}, fired[TotalNe] = {0};
         int fired1Num = 0, fired2Num = 0, fired3Num = 0;
         for(i = 0, j = 0; i < BoundNe + ShiftNe + InhibitionNe; i++) { if(v[i] >= Vth) {fired1[j] = i; fired3[j] = i; fired[j] = i; v[fired[j]] = C[fired[j]];  u[fired[j]] += D[fired[j]]; j++;}} 
@@ -163,14 +240,18 @@ int main()
         
 
         //line 160
+        tmpvi = Speed;
+        if(MYABS(SaSpeed_temp) <= SaBorder) {
+            ExternalI[23] = Speed;
+            ExternalI[24] = Speed;
+            tmpvi = 0;
+        }
+        tmpui = MYABS(ModulationCurrent) + tmpvi;
         if(ModulationCurrent > 0) {
             // 4 
-            for(i = BoundNe; i < ShiftNe/2+BoundNe; i++) ExternalI[i] = ModulationCurrent;
-            for(i = ShiftNe+BoundNe+InhibitionNe; i < ShiftNe+BoundNe+1+CoupledNe; i++) ExternalI[i] = Speed;
-            
+            for(i = BoundNe; i < ShiftNe/2+BoundNe; i++) ExternalI[i] = tmpui;
         } else if(ModulationCurrent < 0) {
-            for(i = ShiftNe; i < ShiftNe+BoundNe; i++) ExternalI[i] = -ModulationCurrent;
-            for(i = ShiftNe+BoundNe+InhibitionNe; i < ShiftNe+BoundNe+1+CoupledNe; i++) ExternalI[i] = Speed;
+            for(i = BoundNe+ShiftNe/2; i < ShiftNe+BoundNe; i++) ExternalI[i] = tmpui;
         } else {
             for(i = BoundNe; i < ShiftNe+BoundNe; i++) ExternalI[i] = 0;
         }
