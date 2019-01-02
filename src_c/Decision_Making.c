@@ -26,8 +26,8 @@ const double DeltaT = 0.0100000000000; // ms
 const int NoiseStrengthBase = 0;
 int Velocity[2] = {1, 8}; // Length subject to change
 int VelocityLen = 2;
-const double SaSpeed[4] = {1, 1.5, 2.5, 4};
-//const double SaSpeed[4] = {4, 2.5, 1.5, 1};
+//const double SaSpeed[4] = {1, 1.5, 2.5, 4};
+const double SaSpeed[4] = {4, 2.5, 1.5, 1};
 int SaSpeedLen = 4;
 int SaPosition[4] = {1, 1, 1, 1};
 int SaPositionLen = 4;
@@ -45,7 +45,7 @@ const int FrameInterval=3;
 // BoundNe+ShiftNe+InhibitionNe+FMNe+BaseFrequencyNe+CoupledNe;
 
 // % Bump,Shift,Inh,Couple,Base,FM
-double a[6]={0.04,0.04,0.04,0.02,0.02,0.02}, b[6]={0.1,0.1,0.1,0.2,0.2,0.2}, c[6]={100-39.5,100-52,100-57,100-45,100-39.5,100-57}, dFast[6]={0.1,0.1,0.1,0.1,0.1,0.1}, dSlow[6]={0.1,0.1,0.1,0.1,0.1,6}, IBFast[6]={6,-35,-2,16,10,-11}, IBSlow[6]={9.4,2,-2,16,10,-11};
+const double a[6]={0.04,0.04,0.04,0.02,0.02,0.02}, b[6]={0.1,0.1,0.1,0.2,0.2,0.2}, c[6]={100-39.5,100-52,100-57,100-45,100-39.5,100-57}, dFast[6]={0.1,0.1,0.1,0.1,0.1,0.1}, dSlow[6]={0.1,0.1,0.1,0.1,0.1,6}, IBFast[6]={6,-35,-2,16,10,-11}, IBSlow[6]={9.4,2,-2,16,10,-11};
 void funca(double fa[TotalNe], const double v[TotalNe],const double u[TotalNe],const double b[TotalNe],const double I[TotalNe],const double dT, const double dtt, const double arg1[TotalNe], const double arg2[TotalNe]);
 void funcb(double fb[TotalNe], const double a[TotalNe],const double b[TotalNe],const double v[TotalNe],const double u[TotalNe],const double dT, const double dtt, const double arg1[TotalNe], const double arg2[TotalNe]);
 
@@ -57,14 +57,17 @@ double MYABS(double x) {
 int main()
 {
     int ModulationCurrent=DirectionSlow[1];
-    int Speed=Velocity[1];
+    //int Speed=Velocity[1];
     int debug_ = 2;
     int i, j, k;
+    double Speed = 0;
     double mychart_x[29]={0}, mychart_y[29]={0};
     double tmpVal, tmpVal_1;
     double UpdateStimulus = 3000;
     // line 50 init A,B,C,D
-    double A[TotalNe], B[TotalNe], C[TotalNe], DSlow[TotalNe], DFast[TotalNe], IbiasSlow[TotalNe], IbiasFast[TotalNe], ExternalI[TotalNe] = {0}, Inoise[TotalNe] = {0}, v[TotalNe], u[TotalNe], S1[TotalNe] = {0}, S2[TotalNe] = {0}, Potential[TotalNeA1] = {0}, SynapticCurrent1[TotalNeA1] = {0}, SynapticCurrent2[TotalNeA1] = {0};
+    double A[TotalNe], B[TotalNe], C[TotalNe], DSlow[TotalNe], DFast[TotalNe], IbiasSlow[TotalNe], IbiasFast[TotalNe];
+    //double A[TotalNe], B[TotalNe], C[TotalNe], DSlow[TotalNe], DFast[TotalNe], IbiasSlow[TotalNe], IbiasFast[TotalNe], ExternalI[TotalNe] = {0}, Inoise[TotalNe] = {0}, v[TotalNe], u[TotalNe], S1[TotalNe] = {0}, S2[TotalNe] = {0}, Potential[TotalNeA1] = {0}, SynapticCurrent1[TotalNeA1] = {0}, SynapticCurrent2[TotalNeA1] = {0};
+    double ExternalI[TotalNe] = {0}, Inoise[TotalNe] = {0}, v[TotalNe], u[TotalNe], S1[TotalNe] = {0}, S2[TotalNe] = {0}, Potential[TotalNeA1] = {0}, SynapticCurrent1[TotalNeA1] = {0}, SynapticCurrent2[TotalNeA1] = {0};
     double *D, *Ibias;
     for(i = 0; i < BoundNe; i++) {  A[i] = a[0];    B[i] = b[0];    C[i] = c[0];    DSlow[i] = dSlow[0];    DFast[i] = dFast[0];    IbiasSlow[i] = IBSlow[0];    IbiasFast[i] = IBFast[0]; }
     for(i = BoundNe; i < ShiftNe + BoundNe; i++) {  A[i] = a[1];    B[i] = b[1];    C[i] = c[1];    DSlow[i] = dSlow[1];    DFast[i] = dFast[1];    IbiasSlow[i] = IBSlow[1];    IbiasFast[i] = IBFast[1];  }
@@ -106,7 +109,7 @@ int main()
     // VelocityLen = 1;
     int l = 1;
     // Line 84 - 92
-    Speed = Velocity[l];
+    Speed = SaSpeed[0];
     for(i = 0; i < TotalNe; i++) { v[i] = Vr; u[i] = 10.0; S1[i] = 0; S2[i] = 0;}
     v[TotalNe - 2] = 70;
     Potential[0] = 0, SynapticCurrent1[0] = 0, SynapticCurrent2[0] = 0;
@@ -122,7 +125,7 @@ int main()
         // fprintf(tempfptr,"Simulation Time: %d, DeltaT: %f\n\n", SimulationTime, DeltaT);
     }
 
-    double SaSpeed_temp;
+    double SaSpeed_temp = 0;
     int m = 0;
     int t_updateTime = UpdateStimulus;
     double tmpi, tmpvi, tmpui, minchar, tmpsu;
