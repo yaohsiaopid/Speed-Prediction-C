@@ -60,6 +60,7 @@ int main()
     //int Speed=Velocity[1];
     int debug_ = 2;
     int i, j, k;
+    int SpikeCount[TotalNe] = {0};
     double Speed = 0;
     double mychart_x[29]={0}, mychart_y[29]={0};
     double tmpVal, tmpVal_1;
@@ -116,12 +117,14 @@ int main()
     for(i = 0; i < TotalNe; i++) { Potential[i+1] = v[i]; SynapticCurrent1[i+1] = S1[i]; SynapticCurrent2[i+1] = S2[i]; }
     // line 96
     double firings[DoubTotalNe] = {0}, FirRate[BoundNeA1] = {0}, I[TotalNe] = {0};
-    int n = 1, t;
+    int Frame = 1, t;
     double Position[1000][3] = {0};
     int PositionIdx = 0, x = 0;
     FILE* tempfptr = NULL;
+    FILE* bumpfptr = NULL;
     if (debug_ == 2) {
         tempfptr = fopen("plot.txt", "w");
+        bumpfptr = fopen("bump.txt", "w");
         // fprintf(tempfptr,"Simulation Time: %d, DeltaT: %f\n\n", SimulationTime, DeltaT);
     }
 
@@ -184,13 +187,21 @@ int main()
             ExternalI[StimulusNeuron-1] = StimulusStrength;
             t_updateTime++;
         }
-        else {
-            ExternalI[StimulusNeuron-1] = 0;
-        }
+        else ExternalI[StimulusNeuron-1] = 0;
 
         int fired1[TotalNe] = {0}, fired2[TotalNe] = {0}, fired3[TotalNe] = {0}, fired[TotalNe] = {0};
         int fired1Num = 0, fired2Num = 0, fired3Num = 0;
-        for(i = 0, j = 0; i < BoundNe + ShiftNe + InhibitionNe; i++) { if(v[i] >= Vth) {fired1[j] = i; fired3[j] = i; fired[j] = i; v[fired[j]] = C[fired[j]];  u[fired[j]] += D[fired[j]]; j++;}} 
+        for(i = 0, j = 0; i < BoundNe + ShiftNe + InhibitionNe; i++) {
+            if(v[i] >= Vth) {
+                fired1[j] = i;
+                fired3[j] = i;
+                fired[j] = i;
+                v[fired[j]] = C[fired[j]];
+                u[fired[j]] += D[fired[j]];
+                SpikeCount[i]++;
+                j++;
+            }
+        } 
         fired1Num = j;
         for(i = BoundNe + ShiftNe + InhibitionNe, j = 0; i < TotalNe; i++) { 
             if(v[i] >= Vth) {
@@ -198,11 +209,17 @@ int main()
                 fired3[j + fired1Num] = i;
                 fired[j + fired1Num] = i; 
                 v[fired[j+fired1Num]] = C[fired[j+fired1Num]]; 
-                u[fired[j+fired1Num]] += D[fired[j+fired1Num]]; j++;
+                u[fired[j+fired1Num]] += D[fired[j+fired1Num]];
+                SpikeCount[i]++;
+                j++;
             }
         } 
-        fired2Num = j; fired3Num = fired2Num + fired1Num;
-        for(i = 0; i < fired3Num; i++) { firings[i] = t * DeltaT + fired3[i]; firings[i+fired3Num] = fired3[i]; }
+        fired2Num = j;
+        fired3Num = fired2Num + fired1Num;
+        for(i = 0; i < fired3Num; i++) {
+            firings[i] = t * DeltaT + fired3[i];
+            firings[i+fired3Num] = fired3[i];
+        }
         
         int tem = {0};
         double temp[BoundNeA1] = {0};
@@ -352,15 +369,26 @@ int main()
             for(i = 0; i < TotalNe; i++) { fprintf(tempfptr,"%3.4f ", v[i]); }
             fprintf(tempfptr,"\n");
         }
-        
+
+        /* print bump position */
+        if ((t % 5000) % 1667 == 0) {
+            PositionIdx = -1;
+            tmpi = 0;
+            for(i = 0; i < BoundNe; i++) {
+               if(tmpi < SpikeCount[i]) {
+                   tmpi = SpikeCount[i]; 
+                   PositionIdx = i;
+               }
+               SpikeCount[i] = 0;
+            }
+            for(i = BoundNe; i < TotalNe; i++)
+                SpikeCount[i] = 0;
+            fprintf(bumpfptr, "%d %d %d\n", Frame, t, PositionIdx);
+            Frame++;
+        }
 
     }
-    
-
-
 // }
-
-
 }
 
 void funca(double fa[TotalNe], const double v[TotalNe],const double u[TotalNe],const double b[TotalNe],const double I[TotalNe],const double dT, const double dtt, const double arg1[TotalNe], const double arg2[TotalNe])
